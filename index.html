@@ -62,21 +62,6 @@ const PALETTES = {
 const DAYS         = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
 const PALETTE_KEYS = Object.keys(PALETTES);
 
-// Get the date for each day of the current week (week starts Saturday)
-function getWeekDates(weekOffset=0) {
-  const today = new Date();
-  const dayOfWeek = today.getDay(); // 0=Sun, 6=Sat
-  // Days since last Saturday
-  const daysSinceSat = (dayOfWeek + 1) % 7; // Sat=0, Sun=1, Mon=2...
-  const saturday = new Date(today);
-  saturday.setDate(today.getDate() - daysSinceSat + (weekOffset * 7));
-  return Array.from({length:7}, (_,i) => {
-    const d = new Date(saturday);
-    d.setDate(saturday.getDate() + i);
-    return d;
-  });
-}
-
 // ═══════════════ I18N ═══════════════
 const LANGS = {
   ar: {
@@ -114,42 +99,6 @@ const LANGS = {
     weeks_count:"أسبوع", factories_count:"مصانع",
     name_placeholder:"الاسم", quintar_placeholder:"0",
     advance_date_days:["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"],
-  },
-  en: {
-    appName:"Salt Factory", days:["Sat","Sun","Mon","Tue","Wed","Thu","Fri"],
-    morning:"Morning shift", evening:"Evening shift",
-    worker1:"Worker 1", worker2:"Worker 2", quintal:"Quintal",
-    addEvening:"🌙 + Add evening shift", removeEvening:"🗑️ Remove evening shift",
-    days_tab:"📋 Days", advances_tab:"💸 Advances", summary_tab:"📊 Summary",
-    settings_btn:"⚙️ Settings", weeks_label:"Weeks", rename:"✏️ Rename",
-    delete:"🗑️ Delete", new_week:"+ New week", week:"Week",
-    settled:"✅ Settled", settle_btn:"✅ Close & settle week", unlock:"🔓",
-    my_share:"My share", daily_total:"Day total", rest:"Off",
-    advances_title:"💸 Advances & Deductions", add_advance:"+ Add advance",
-    add_advance_btn:"💸 Add advance or deduction", no_advances:"No advances this week",
-    add_advance_hint:"Tap the button above to add an advance",
-    total_deductions:"Total deductions", before_deduction:"My share before deduction",
-    net:"✅ My net share", amount:"Amount (DA)", note:"Note (optional)",
-    add_confirm:"➕ Add deduction", cancel:"Cancel", save:"Save",
-    factory_name:"Factory name", my_name:"My name", price_q:"Price/quintal",
-    weekly_goal:"Weekly goal", not_set:"Not set", currency:"DA",
-    workers_registered:"👷 Registered workers", about:"ℹ️ About",
-    language_setting:"🌐 Language", factories_title:"🏭 Factories",
-    add_factory:"＋ Add new factory", settled_week:"Week settled — cannot add advances",
-    worker_wages:"👷 Each worker's wage", total_wages:"Total wages (3 workers)",
-    all_time:"🏆 All-time total", net_total:"Net total",
-    before:"Before ded.", deductions:"Deductions", net_share:"Net",
-    day_detail:"Daily breakdown", theme_mode:"🌗 Display mode", light:"☀️ Light", dark:"🌙 Dark",
-    factory_color:"🎨 Factory color", factory_settings:"🏭 Factory settings",
-    per_worker:"Per worker:", quintar_label:"quintal", two_shifts:"2 shifts",
-    advance_modal_title:"💸 Add advance / deduction", advance_warning:"⚠️ This amount will be deducted from your net share this week.",
-    rename_week:"✏️ Rename week", delete_week:"🗑️ Delete week",
-    delete_week_confirm:"This cannot be undone.", delete_factory:"🗑️ Delete factory",
-    factory_name_title:"🏭 Factory name", my_name_title:"👷 Your name",
-    goal_title:"🎯 Weekly goal", goal_remove:"Remove",
-    weeks_count:"wks", factories_count:"factories",
-    name_placeholder:"Name", quintar_placeholder:"0",
-    advance_date_days:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
   },
   fr: {
     appName:"Usine de Sel", days:["Sam","Dim","Lun","Mar","Mer","Jeu","Ven"],
@@ -375,46 +324,11 @@ function App(){
     return()=>{const el=document.getElementById("slt-css");if(el)el.remove();};
   },[]);
 
-  // ── Back button handler (PWA) ──
-  // Track tab history for smart back navigation
-  const [tabHistory, setTabHistory] = React.useState(["days"]);
-
-  const navigateTo = (newTab) => {
-    setTab(newTab);
-    setTabHistory(prev => [...prev, newTab]);
-    window.history.pushState({page:"app", tab:newTab}, "");
-  };
-
-  const goBack = () => {
-    // 1. Close modal first
-    if(modal){ setModal(null); window.history.pushState({page:"app"}, ""); return; }
-    // 2. Close factory sheet
-    if(showFac){ setShowFac(false); window.history.pushState({page:"app"}, ""); return; }
-    // 3. Go to previous tab
-    if(tabHistory.length > 1){
-      const newHistory = tabHistory.slice(0,-1);
-      setTabHistory(newHistory);
-      setTab(newHistory[newHistory.length-1]);
-      return;
-    }
-    // 4. Already at root — push state to prevent close
-    window.history.pushState({page:"app"}, "");
-  };
-
-  useEffect(()=>{
-    window.history.pushState({page:"app"}, "");
-    window.addEventListener("popstate", goBack);
-    return () => window.removeEventListener("popstate", goBack);
-  }, [modal, showFac, tabHistory]);
-
   const fIdx    = Math.max(0,factories.findIndex(f=>f.id===activeFactoryId));
   const factory = factories[fIdx]||factories[0];
   const C       = getC(factory.colorKey,themeMode);
   const safeAw  = Math.min(factory.activeWeek??0,factory.weeks.length-1);
   const week    = factory.weeks[safeAw];
-  // Calculate real dates for each day of this week
-  const weekDates = getWeekDates(safeAw);
-  const formatDate = (d) => `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
   const advances= week.advances||[];
   const workers = collectWorkers(factory);
   const pricePerQ=factory.pricePerQ;
@@ -424,7 +338,7 @@ function App(){
   const mutWeek     = fn => mutFac(fac=>({...fac,weeks:fac.weeks.map((w,i)=>i===safeAw?fn(w):w)}));
   const setShift    = (di,sh,field,val) => mutWeek(w=>({...w,days:w.days.map((d,i)=>i!==di?d:{...d,[sh]:{...d[sh],[field]:val}})}));
   const toggleEve   = di => mutWeek(w=>({...w,days:w.days.map((d,i)=>i!==di?d:{...d,evening:d.evening?null:emptyShift()})}));
-  const addWeek     = () => { const n=factory.weeks.length+1; mutFac(f=>({...f,weeks:[...f.weeks,emptyWeek(n)],activeWeek:f.weeks.length})); navigateTo("days"); };
+  const addWeek     = () => { const n=factory.weeks.length+1; mutFac(f=>({...f,weeks:[...f.weeks,emptyWeek(n)],activeWeek:f.weeks.length})); setTab("days"); };
   const deleteWeek  = () => { if(factory.weeks.length<=1)return; mutFac(f=>({...f,weeks:f.weeks.filter((_,i)=>i!==safeAw),activeWeek:Math.max(0,safeAw-1)})); setModal(null); };
   const addFactory  = () => { const id=Date.now();const n=factories.length+1;const nf={...newFactory(id,n),colorKey:PALETTE_KEYS[factories.length%PALETTE_KEYS.length]};setFactories(p=>[...p,nf]);setActiveFactoryId(id);setShowFac(false);setTab("days");setTimeout(()=>{setTmp(nf.name);setModal("facName");},200); };
   const deleteFac   = id => { if(factories.length<=1)return;setFactories(p=>p.filter(f=>f.id!==id));if(activeFactoryId===id)setActiveFactoryId(factories.find(f=>f.id!==id)?.id);setModal(null); };
@@ -461,7 +375,7 @@ function App(){
   const closeModal=()=>setModal(null);
 
   return(
-    <div style={{minHeight:"100vh",background:C.surface,fontFamily:"'Cairo','Noto Sans Arabic',Tahoma,sans-serif",direction:lang==="en"?"ltr":"rtl",color:C.onSurface,transition:"background .3s,color .3s"}}>
+    <div style={{minHeight:"100vh",background:C.surface,fontFamily:"'Cairo','Noto Sans Arabic',Tahoma,sans-serif",direction:"rtl",color:C.onSurface,transition:"background .3s,color .3s"}}>
 
       {/* FACTORY SHEET */}
       {showFac&&(
@@ -495,7 +409,7 @@ function App(){
 
       {/* MODALS */}
       <Modal open={modal==="facName"} onClose={closeModal} title=T.factory_name_title C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder=T.factory_name C={C}/><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{setFacField("name",tmp||factory.name);closeModal();}} C={C}>{T.save}</Btn><Btn onClick={closeModal} C={C}>{T.cancel}</Btn></div></Modal>
-      <Modal open={modal==="myName"} onClose={closeModal} title=T.my_name_title C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder={lang==="fr"?"Moi":lang==="en"?"Me":"أنا"} C={C}/><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{setFacField("myName",tmp||"أنا");closeModal();}} C={C}>{T.save}</Btn><Btn onClick={closeModal} C={C}>{T.cancel}</Btn></div></Modal>
+      <Modal open={modal==="myName"} onClose={closeModal} title=T.my_name_title C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder={lang==="fr"?"Moi":"أنا"} C={C}/><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{setFacField("myName",tmp||"أنا");closeModal();}} C={C}>{T.save}</Btn><Btn onClick={closeModal} C={C}>{T.cancel}</Btn></div></Modal>
       <Modal open={modal==="price"} onClose={closeModal} title="⚙️ "+T.price_q C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder="14" center large C={C}/><div style={{fontSize:12,color:C.outline,marginTop:8,textAlign:"center"}}>إجمالي × السعر ÷ 3 عمال (د.ج)</div><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{setFacField("pricePerQ",parseFloat(tmp)||14);closeModal();}} C={C}>{T.save}</Btn><Btn onClick={closeModal} C={C}>{T.cancel}</Btn></div></Modal>
       <Modal open={modal==="renWeek"} onClose={closeModal} title=T.rename_week C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder={week.label} C={C}/><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{mutWeek(w=>({...w,label:tmp||w.label}));closeModal();}} C={C}>{T.save}</Btn><Btn onClick={closeModal} C={C}>{T.cancel}</Btn></div></Modal>
       <Modal open={modal==="delWeek"} onClose={closeModal} title=T.delete_week danger C={C}><div style={{fontSize:15,lineHeight:1.7,marginBottom:6}}>حذف <strong>{week.label}</strong>؟<br/><span style={{fontSize:12,color:C.outline}}>{T.delete_week_confirm}</span></div><div style={{display:"flex",gap:8,marginTop:20}}><Btn danger onClick={deleteWeek} disabled={factory.weeks.length<=1} C={C}>🗑️ حذف</Btn><Btn filled onClick={closeModal} C={C}>{T.cancel}</Btn></div></Modal>
@@ -504,7 +418,7 @@ function App(){
         <Label C={C}>المبلغ (د.ج)</Label>
         <Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder="0" center large C={C} style={{marginBottom:14}}/>
         <Label C={C}>ملاحظة (اختياري)</Label>
-        <Input value={tmp2} onChange={e=>setTmp2(e.target.value)} placeholder={lang==="fr"?"Avance / Dette / Déduction ...":lang==="en"?"Advance / Debt / Deduction ...":"سلفة / دين / خصم ..."} C={C}/>
+        <Input value={tmp2} onChange={e=>setTmp2(e.target.value)} placeholder={lang==="fr"?"Avance / Dette / Déduction ...":"سلفة / دين / خصم ..."} C={C}/>
         <div style={{fontSize:12,color:C.error,marginTop:10,background:C.errorContainer,borderRadius:12,padding:"8px 12px"}}>
           ⚠️ سيُخصم هذا المبلغ من صافي نصيبك في هذا الأسبوع.
         </div>
@@ -532,7 +446,7 @@ function App(){
           </button>
           <div style={{display:"flex",gap:6}}>
             <button onClick={()=>openModal("myName",factory.myName)} style={{background:C.primaryContainer,border:"none",borderRadius:100,padding:"5px 12px",display:"flex",alignItems:"center",gap:5,cursor:"pointer",color:C.onPrimaryContainer,fontFamily:"inherit",fontWeight:700,fontSize:13}}>👷 {factory.myName}</button>
-            <button onClick={()=>navigateTo("settings")} style={{background:C.scHighest,border:`1px solid ${C.outlineVariant}`,borderRadius:100,padding:"5px 14px",cursor:"pointer",color:C.onSurfaceVariant,fontFamily:"inherit",fontSize:13,fontWeight:600}}>{T.settings_btn}</button>
+            <button onClick={()=>setTab("settings")} style={{background:C.scHighest,border:`1px solid ${C.outlineVariant}`,borderRadius:100,padding:"5px 14px",cursor:"pointer",color:C.onSurfaceVariant,fontFamily:"inherit",fontSize:13,fontWeight:600}}>{T.settings_btn}</button>
           </div>
         </div>
       </div>
@@ -560,7 +474,7 @@ function App(){
         {/* Tabs */}
         <div style={{display:"flex",background:C.scHighest,borderRadius:100,padding:4,marginBottom:18,gap:3,border:`1px solid ${C.outlineVariant}`}}>
           {[{k:"days",l:T.days_tab},{k:"advances",l:T.advances_tab},{k:"summary",l:T.summary_tab}].map(t=>(
-            <button key={t.k} onClick={()=>navigateTo(t.k)} style={{flex:1,padding:"8px 2px",borderRadius:100,border:"none",
+            <button key={t.k} onClick={()=>setTab(t.k)} style={{flex:1,padding:"8px 2px",borderRadius:100,border:"none",
               background:tab===t.k?C.scLowest:"transparent",color:tab===t.k?C.primary:C.onSurfaceVariant,
               fontFamily:"inherit",fontSize:10,fontWeight:tab===t.k?700:400,
               cursor:"pointer",boxShadow:tab===t.k?"0 1px 3px rgba(0,0,0,.08)":"none",transition:"all .2s",
@@ -586,10 +500,7 @@ function App(){
                   <div style={{background:isBest?"#FFF8DC":has?`${C.primaryContainer}90`:C.scHighest,padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
                       <div style={{width:32,height:32,borderRadius:10,background:isBest?"#B8860B":has?C.primary:C.scLowest,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:has?C.onPrimary:C.outline}}>{isBest?"🥇":di+1}</div>
-                      <div>
-                        <span style={{fontWeight:700,fontSize:15,color:isBest?"#B8860B":has?C.onPrimaryContainer:C.onSurface}}>{dayName}</span>
-                        <div style={{fontSize:10,color:isBest?"#B8860B":has?C.onPrimaryContainer:C.outline,opacity:.8,marginTop:1}}>{formatDate(weekDates[di])}</div>
-                      </div>
+                      <span style={{fontWeight:700,fontSize:15,color:isBest?"#B8860B":has?C.onPrimaryContainer:C.onSurface}}>{dayName}</span>
                       {d.evening&&<span style={{background:C.tertiaryContainer,color:C.onTertiaryContainer,borderRadius:100,fontSize:10,padding:"2px 9px",fontWeight:700}}>{T.two_shifts}</span>}
                     </div>
                     {has&&<div style={{textAlign:"left"}}><div style={{fontSize:10,color:C.outline,opacity:.7}}>{T.my_share}</div><div style={{fontWeight:900,fontSize:18,color:isBest?"#B8860B":C.primary,lineHeight:1}}>{mine.toFixed(2)}</div></div>}
@@ -735,10 +646,7 @@ function App(){
                 const d=week.days[di];const tot=dayQ(d);const mine=(tot*pricePerQ)/3;const has=tot>0;const isBest=has&&di===bestDayIdx&&weekQ>0;
                 return(
                   <div key={di} style={{padding:"11px 18px",borderBottom:di<6?`1px solid ${C.outlineVariant}`:"none",background:isBest?"#FFF8DC":has?`${C.primaryContainer}40`:"transparent",display:"flex",alignItems:"center",justifyContent:"space-between",opacity:has?1:.4}}>
-                    <div>
-                      <div style={{fontWeight:600,fontSize:14,color:isBest?"#B8860B":C.onSurface}}>{isBest?"🥇 ":""}{name}</div>
-                      <div style={{fontSize:10,color:C.outline,marginTop:1}}>{formatDate(weekDates[di])}{has&&` · ${d.morning.w1||"—"} · ${d.morning.w2||"—"}`}</div>
-                    </div>
+                    <div><div style={{fontWeight:600,fontSize:14,color:isBest?"#B8860B":C.onSurface}}>{isBest?"🥇 ":""}{name}</div>{has&&<div style={{fontSize:10,color:C.outline,marginTop:1}}>{d.morning.w1||"—"} · {d.morning.w2||"—"} · {factory.myName}</div>}</div>
                     <div style={{textAlign:"left"}}>{has?(<div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:2}}><div style={{fontSize:11,color:C.outline}}>{tot.toFixed(1)} قنطار</div><div style={{fontWeight:800,fontSize:16,color:isBest?"#B8860B":C.primary}}>{mine.toFixed(2)} {T.currency}</div></div>):<span style={{fontSize:12,color:C.outline}}>{T.rest}</span>}</div>
                   </div>
                 );
@@ -979,7 +887,7 @@ function App(){
             <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
               <div style={{fontWeight:800,fontSize:15,marginBottom:14}}>{T.language_setting}</div>
               <div style={{display:"flex",gap:10}}>
-                {[{k:"ar",l:"🇩🇿 العربية"},{k:"fr",l:"🇫🇷 Français"},{k:"en",l:"🇬🇧 English"}].map(lg=>(
+                {[{k:"ar",l:"🇩🇿 العربية"},{k:"fr",l:"🇫🇷 Français"}].map(lg=>(
                   <button key={lg.k} onClick={()=>setLang(lg.k)} style={{flex:1,padding:"12px 8px",
                     background:lang===lg.k?C.primaryContainer:C.scHighest,
                     color:lang===lg.k?C.onPrimaryContainer:C.onSurfaceVariant,
@@ -993,7 +901,7 @@ function App(){
             <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
               <div style={{fontWeight:800,fontSize:15,marginBottom:12}}>{T.about}</div>
               <div style={{fontSize:13,color:C.outline,lineHeight:2}}>
-                {lang==="fr"?"Application de suivi de production":lang==="en"?"Factory production tracker":"تطبيق تتبع إنتاج المصانع"}<br/>{lang==="fr"?"Devise: Dinar Algérien (DA)":lang==="en"?"Currency: Algerian Dinar (DA)":"العملة: الدينار الجزائري (د.ج)"}<br/>{lang==="fr"?"Usines":lang==="en"?"Factories":"المصانع"}: {factories.length} · {lang==="fr"?"Semaines":lang==="en"?"Weeks":"الأسابيع"}: {factory.weeks.length}<br/>{lang==="fr"?"Données sauvegardées localement":lang==="en"?"Data saved locally":"جميع البيانات محفوظة محلياً"}
+                {lang==="fr"?"Application de suivi de production":"تطبيق تتبع إنتاج المصانع"}<br/>{lang==="fr"?"Devise: Dinar Algérien (DA)":"العملة: الدينار الجزائري (د.ج)"}<br/>{lang==="fr"?"Usines":"المصانع"}: {factories.length} · {lang==="fr"?"Semaines":"الأسابيع"}: {factory.weeks.length}<br/>{lang==="fr"?"Données sauvegardées localement":"جميع البيانات محفوظة محلياً"}
               </div>
             </div>
           </div>
