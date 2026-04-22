@@ -62,92 +62,16 @@ const PALETTES = {
 const DAYS         = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
 const PALETTE_KEYS = Object.keys(PALETTES);
 
-// ═══════════════ I18N ═══════════════
-const LANGS = {
-  ar: {
-    appName:"مصنع تعليب الملح", days:["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"],
-    morning:"الفترة الصباحية", evening:"الفترة المسائية",
-    worker1:"العامل الأول", worker2:"العامل الثاني", quintal:"قنطار",
-    addEvening:T.addEvening, removeEvening:T.removeEvening,
-    days_tab:"📋 الأيام", advances_tab:"💸 السلف", summary_tab:"📊 الملخص",
-    settings_btn:"⚙️ إعدادات", weeks_label:"الأسابيع", rename:"✏️ تغيير الاسم",
-    delete:"🗑️ حذف", new_week:"+ أسبوع جديد", week:"الأسبوع",
-    settled:"✅ تمت التسوية", settle_btn:"✅ إغلاق وتسوية الأسبوع", unlock:"🔓",
-    my_share:"نصيبي", daily_total:"إجمالي اليوم", rest:T.rest,
-    advances_title:"💸 السلف والخصومات", add_advance:"+ إضافة سلفة",
-    add_advance_btn:"💸 إضافة سلفة أو خصم", no_advances:"لا توجد سلف لهذا الأسبوع",
-    add_advance_hint:"اضغط الزر أعلاه لإضافة سلفة أو خصم",
-    total_deductions:"إجمالي الخصومات", before_deduction:"نصيبي قبل الخصم",
-    net:"✅ صافي نصيبي", amount:"المبلغ (د.ج)", note:"ملاحظة (اختياري)",
-    add_confirm:"➕ إضافة الخصم", cancel:"إلغاء", save:"حفظ",
-    factory_name:T.factory_name, my_name:T.my_name, price_q:T.price_q,
-    weekly_goal:T.weekly_goal, not_set:"غير محدد", currency:"د.ج",
-    workers_registered:"👷 العمال المسجلون", about:"ℹ️ عن التطبيق",
-    language_setting:"🌐 اللغة", factories_title:"🏭 المصانع",
-    add_factory:"＋ إضافة مصنع جديد", settled_week:"الأسبوع مُسوَّى — لا يمكن إضافة سلف",
-    worker_wages:"👷 أجر كل عامل", total_wages:"مجموع الرواتب (الثلاثة)",
-    all_time:"🏆 الإجمالي الكلي", net_total:"الصافي الكلي",
-    before:"قبل الخصم", deductions:"الخصومات", net_share:"الصافي",
-    day_detail:"تفصيل كل يوم", theme_mode:"🌗 وضع العرض", light:T.light, dark:T.dark,
-    factory_color:"🎨 لون هذا المصنع", factory_settings:"🏭 إعدادات المصنع الحالي",
-    per_worker:"لكل عامل:", quintar_label:"قنطار", two_shifts:"فترتان",
-    advance_modal_title:T.advance_modal_title, advance_warning:"⚠️ سيُخصم هذا المبلغ من صافي نصيبك في هذا الأسبوع.",
-    rename_week:T.rename_week, delete_week:T.delete_week,
-    delete_week_confirm:"لا يمكن التراجع.", delete_factory:T.delete_factory,
-    factory_name_title:T.factory_name_title, my_name_title:T.my_name_title,
-    goal_title:T.goal_title, goal_remove:"إزالة",
-    weeks_count:"أسبوع", factories_count:"مصانع",
-    name_placeholder:"الاسم", quintar_placeholder:"0",
-    advance_date_days:["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"],
-  },
-  fr: {
-    appName:"Usine de Sel", days:["Sam","Dim","Lun","Mar","Mer","Jeu","Ven"],
-    morning:"Période du matin", evening:"Période du soir",
-    worker1:"Ouvrier 1", worker2:"Ouvrier 2", quintal:"Quintal",
-    addEvening:"🌙 + Ajouter période du soir", removeEvening:"🗑️ Supprimer période du soir",
-    days_tab:"📋 Jours", advances_tab:"💸 Avances", summary_tab:"📊 Résumé",
-    settings_btn:"⚙️ Paramètres", weeks_label:"Semaines", rename:"✏️ Renommer",
-    delete:"🗑️ Suppr.", new_week:"+ Nouvelle semaine", week:"Semaine",
-    settled:"✅ Soldé", settle_btn:"✅ Clôturer et solder la semaine", unlock:"🔓",
-    my_share:"Ma part", daily_total:"Total jour", rest:"Repos",
-    advances_title:"💸 Avances & Déductions", add_advance:"+ Ajouter avance",
-    add_advance_btn:"💸 Ajouter une avance", no_advances:"Aucune avance cette semaine",
-    add_advance_hint:"Appuyez sur le bouton ci-dessus pour ajouter une avance",
-    total_deductions:"Total déductions", before_deduction:"Ma part avant déduction",
-    net:"✅ Ma part nette", amount:"Montant (DA)", note:"Remarque (optionnel)",
-    add_confirm:"➕ Ajouter", cancel:"Annuler", save:"Enregistrer",
-    factory_name:"Nom de l'usine", my_name:"Mon nom", price_q:"Prix/quintal",
-    weekly_goal:"Objectif hebdo.", not_set:"Non défini", currency:"DA",
-    workers_registered:"👷 Ouvriers enregistrés", about:"ℹ️ À propos",
-    language_setting:"🌐 Langue", factories_title:"🏭 Usines",
-    add_factory:"＋ Ajouter une usine", settled_week:"Semaine soldée — impossible d'ajouter",
-    worker_wages:"👷 Salaire de chaque ouvrier", total_wages:"Total salaires (3 ouvriers)",
-    all_time:"🏆 Total général", net_total:"Net total",
-    before:"Avant déd.", deductions:"Déductions", net_share:"Net",
-    day_detail:"Détail par jour", theme_mode:"🌗 Thème", light:"☀️ Clair", dark:"🌙 Sombre",
-    factory_color:"🎨 Couleur de cette usine", factory_settings:"🏭 Paramètres de l'usine",
-    per_worker:"Par ouvrier:", quintar_label:"quintal", two_shifts:"2 périodes",
-    advance_modal_title:"💸 Ajouter une avance", advance_warning:"⚠️ Ce montant sera déduit de votre part nette.",
-    rename_week:"✏️ Renommer la semaine", delete_week:"🗑️ Supprimer la semaine",
-    delete_week_confirm:"Cette action est irréversible.", delete_factory:"🗑️ Supprimer l'usine",
-    factory_name_title:"🏭 Nom de l'usine", my_name_title:"👷 Votre nom",
-    goal_title:"🎯 Objectif hebdomadaire", goal_remove:"Supprimer",
-    weeks_count:"sem.", factories_count:"usines",
-    name_placeholder:"Nom", quintar_placeholder:"0",
-    advance_date_days:["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"],
-  }
-};
-
 const emptyShift   = ()        => ({ w1:"", w2:"", q:"" });
 const emptyDay     = ()        => ({ morning:emptyShift(), evening:null });
-const emptyAdvance = (amt="",note="",lang="ar") => {
+const emptyAdvance = (amt="",note="") => {
   const now = new Date();
-  const dayNames = LANGS[lang]?.advance_date_days || LANGS.ar.advance_date_days;
+  const dayNames = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
   const dayName = dayNames[now.getDay()];
   const date = `${dayName} ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
   return { id:Date.now()+Math.random(), amount:amt, note, date };
 };
-const emptyWeek    = (n,label) => ({ id:Date.now()+Math.random(), label:label||`${(LANGS.ar.week||'الأسبوع')} ${n}`, days:DAYS.map(emptyDay), settled:false, advances:[] });
+const emptyWeek    = (n,label) => ({ id:Date.now()+Math.random(), label:label||`الأسبوع ${n}`, days:DAYS.map(emptyDay), settled:false, advances:[] });
 const newFactory   = (id,n)    => ({ id, name:n===1?"مصنع تعليب الملح":`مصنع ${n}`, myName:"أنا", pricePerQ:14, colorKey:PALETTE_KEYS[(n-1)%PALETTE_KEYS.length], weeks:[emptyWeek(1)], activeWeek:0, weeklyGoal:0 });
 
 function load(){ try{ return JSON.parse(localStorage.getItem("slt8")||"null"); }catch{ return null; } }
@@ -279,12 +203,12 @@ function ShiftBlock({shift,onChange,disabled,shiftLabel,accent,pricePerQ,myName,
         <div style={{display:"inline-flex",alignItems:"center",gap:6,background:accent?C.primaryContainer:C.scHighest,borderRadius:100,padding:"3px 11px",fontSize:12,fontWeight:700,color:accent?C.onPrimaryContainer:C.onSurfaceVariant}}>
           <span>{accent?"🌅":"🌙"}</span><span>{shiftLabel}</span>
         </div>
-        {q>0&&<div style={{fontSize:12,fontWeight:800,color:C.primary,background:`${C.primaryContainer}80`,borderRadius:100,padding:"2px 10px"}}>{T.per_worker} {share.toFixed(2)} {T.currency}</div>}
+        {q>0&&<div style={{fontSize:12,fontWeight:800,color:C.primary,background:`${C.primaryContainer}80`,borderRadius:100,padding:"2px 10px"}}>لكل عامل: {share.toFixed(2)} د.ج</div>}
       </div>
       <div style={{display:"flex",gap:8}}>
-        <div style={{flex:1}}><Label C={C}>{T.worker1}</Label><AutoInput value={shift.w1} onChange={e=>onChange("w1",e.target.value)} placeholder={T.name_placeholder} disabled={disabled} suggestions={workers} C={C}/></div>
-        <div style={{flex:1}}><Label C={C}>{T.worker2}</Label><AutoInput value={shift.w2} onChange={e=>onChange("w2",e.target.value)} placeholder={T.name_placeholder} disabled={disabled} suggestions={workers} C={C}/></div>
-        <div style={{width:72}}><Label C={C} style={{textAlign:"center"}}>{T.quintal}</Label><Input value={shift.q} onChange={e=>onChange("q",e.target.value)} placeholder="0" disabled={disabled} center large style={{padding:"8px 4px",fontSize:16}} C={C}/></div>
+        <div style={{flex:1}}><Label C={C}>العامل الأول</Label><AutoInput value={shift.w1} onChange={e=>onChange("w1",e.target.value)} placeholder="الاسم" disabled={disabled} suggestions={workers} C={C}/></div>
+        <div style={{flex:1}}><Label C={C}>العامل الثاني</Label><AutoInput value={shift.w2} onChange={e=>onChange("w2",e.target.value)} placeholder="الاسم" disabled={disabled} suggestions={workers} C={C}/></div>
+        <div style={{width:72}}><Label C={C} style={{textAlign:"center"}}>قنطار</Label><Input value={shift.q} onChange={e=>onChange("q",e.target.value)} placeholder="0" disabled={disabled} center large style={{padding:"8px 4px",fontSize:16}} C={C}/></div>
       </div>
       {q>0&&(
         <div style={{display:"flex",gap:6,marginTop:10,flexWrap:"wrap"}}>
@@ -312,10 +236,8 @@ function App(){
   const [tmp2,            setTmp2]            = useState("");
   const [copied,          setCopied]          = useState(false);
   const [showFac,         setShowFac]         = useState(false);
-  const [lang,            setLang]            = useState(saved?.lang || "ar");
-  const T = LANGS[lang] || LANGS.ar;
 
-  useEffect(()=>save({factories,activeFactoryId,themeMode,lang}),[factories,activeFactoryId,themeMode,lang]);
+  useEffect(()=>save({factories,activeFactoryId,themeMode}),[factories,activeFactoryId,themeMode]);
 
   useEffect(()=>{
     const s=document.createElement("style"); s.id="slt-css";
@@ -342,7 +264,7 @@ function App(){
   const deleteWeek  = () => { if(factory.weeks.length<=1)return; mutFac(f=>({...f,weeks:f.weeks.filter((_,i)=>i!==safeAw),activeWeek:Math.max(0,safeAw-1)})); setModal(null); };
   const addFactory  = () => { const id=Date.now();const n=factories.length+1;const nf={...newFactory(id,n),colorKey:PALETTE_KEYS[factories.length%PALETTE_KEYS.length]};setFactories(p=>[...p,nf]);setActiveFactoryId(id);setShowFac(false);setTab("days");setTimeout(()=>{setTmp(nf.name);setModal("facName");},200); };
   const deleteFac   = id => { if(factories.length<=1)return;setFactories(p=>p.filter(f=>f.id!==id));if(activeFactoryId===id)setActiveFactoryId(factories.find(f=>f.id!==id)?.id);setModal(null); };
-  const addAdv      = (amt,note) => mutWeek(w=>({...w,advances:[...(w.advances||[]),emptyAdvance(amt,note,lang)]}));
+  const addAdv      = (amt,note) => mutWeek(w=>({...w,advances:[...(w.advances||[]),emptyAdvance(amt,note)]}));
   const delAdv      = id => mutWeek(w=>({...w,advances:(w.advances||[]).filter(a=>a.id!==id)}));
 
   // calcs
@@ -382,7 +304,7 @@ function App(){
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",backdropFilter:"blur(10px)",zIndex:500}} onClick={()=>setShowFac(false)}>
           <div style={{position:"absolute",bottom:0,left:0,right:0,background:C.scLow,borderRadius:"28px 28px 0 0",padding:"16px 16px 48px",maxHeight:"88vh",overflowY:"auto",animation:"sheetUp .25s ease"}} onClick={e=>e.stopPropagation()}>
             <div style={{width:40,height:4,background:C.outlineVariant,borderRadius:2,margin:"0 auto 18px"}}/>
-            <div style={{fontWeight:800,fontSize:18,marginBottom:16}}>{T.factories_title}</div>
+            <div style={{fontWeight:800,fontSize:18,marginBottom:16}}>🏭 المصانع</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               {factories.map(f=>{
                 const fC=getC(f.colorKey,themeMode);const isA=f.id===activeFactoryId;
@@ -392,7 +314,7 @@ function App(){
                     <div style={{width:48,height:48,borderRadius:14,background:`linear-gradient(135deg,${fC.primary},${fC.secondary||fC.primary}CC)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>🧂</div>
                     <div style={{flex:1}}>
                       <div style={{fontWeight:700,fontSize:15,color:isA?fC.onPrimaryContainer:C.onSurface}}>{f.name}{isA?" ✓":""}</div>
-                      <div style={{fontSize:11,color:C.outline,marginTop:2}}>{f.weeks.length} {T.weeks_count} · {f.myName} · صافي <span style={{color:fC.primary,fontWeight:700}}>{fNet.toFixed(0)} {T.currency}</span></div>
+                      <div style={{fontSize:11,color:C.outline,marginTop:2}}>{f.weeks.length} أسبوع · {f.myName} · صافي <span style={{color:fC.primary,fontWeight:700}}>{fNet.toFixed(0)} د.ج</span></div>
                     </div>
                     <div style={{display:"flex",gap:6}}>
                       <button onClick={e=>{e.stopPropagation();setActiveFactoryId(f.id);setShowFac(false);setTimeout(()=>{setTmp(f.name);setModal("facName");},100);}} style={{background:"transparent",border:`1px solid ${C.outlineVariant}`,borderRadius:100,width:32,height:32,cursor:"pointer",fontSize:13,color:C.onSurfaceVariant}}>✏️</button>
@@ -401,36 +323,36 @@ function App(){
                   </div>
                 );
               })}
-              <button onClick={addFactory} style={{background:"transparent",border:`2px dashed ${C.outline}`,borderRadius:20,padding:"14px 16px",color:C.outline,cursor:"pointer",fontFamily:"inherit",fontSize:14,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>{T.add_factory}</button>
+              <button onClick={addFactory} style={{background:"transparent",border:`2px dashed ${C.outline}`,borderRadius:20,padding:"14px 16px",color:C.outline,cursor:"pointer",fontFamily:"inherit",fontSize:14,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>＋ إضافة مصنع جديد</button>
             </div>
           </div>
         </div>
       )}
 
       {/* MODALS */}
-      <Modal open={modal==="facName"} onClose={closeModal} title=T.factory_name_title C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder=T.factory_name C={C}/><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{setFacField("name",tmp||factory.name);closeModal();}} C={C}>{T.save}</Btn><Btn onClick={closeModal} C={C}>{T.cancel}</Btn></div></Modal>
-      <Modal open={modal==="myName"} onClose={closeModal} title=T.my_name_title C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder={lang==="fr"?"Moi":"أنا"} C={C}/><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{setFacField("myName",tmp||"أنا");closeModal();}} C={C}>{T.save}</Btn><Btn onClick={closeModal} C={C}>{T.cancel}</Btn></div></Modal>
-      <Modal open={modal==="price"} onClose={closeModal} title="⚙️ "+T.price_q C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder="14" center large C={C}/><div style={{fontSize:12,color:C.outline,marginTop:8,textAlign:"center"}}>إجمالي × السعر ÷ 3 عمال (د.ج)</div><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{setFacField("pricePerQ",parseFloat(tmp)||14);closeModal();}} C={C}>{T.save}</Btn><Btn onClick={closeModal} C={C}>{T.cancel}</Btn></div></Modal>
-      <Modal open={modal==="renWeek"} onClose={closeModal} title=T.rename_week C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder={week.label} C={C}/><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{mutWeek(w=>({...w,label:tmp||w.label}));closeModal();}} C={C}>{T.save}</Btn><Btn onClick={closeModal} C={C}>{T.cancel}</Btn></div></Modal>
-      <Modal open={modal==="delWeek"} onClose={closeModal} title=T.delete_week danger C={C}><div style={{fontSize:15,lineHeight:1.7,marginBottom:6}}>حذف <strong>{week.label}</strong>؟<br/><span style={{fontSize:12,color:C.outline}}>{T.delete_week_confirm}</span></div><div style={{display:"flex",gap:8,marginTop:20}}><Btn danger onClick={deleteWeek} disabled={factory.weeks.length<=1} C={C}>🗑️ حذف</Btn><Btn filled onClick={closeModal} C={C}>{T.cancel}</Btn></div></Modal>
-      <Modal open={modal==="goal"} onClose={closeModal} title=T.goal_title C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder="0" center large C={C}/><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{setFacField("weeklyGoal",parseFloat(tmp)||0);closeModal();}} C={C}>{T.save}</Btn><Btn onClick={()=>{setFacField("weeklyGoal",0);closeModal();}} C={C}>{T.goal_remove}</Btn></div></Modal>
-      <Modal open={modal==="addAdv"} onClose={closeModal} title=T.advance_modal_title C={C}>
+      <Modal open={modal==="facName"} onClose={closeModal} title="🏭 اسم المصنع" C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder="اسم المصنع" C={C}/><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{setFacField("name",tmp||factory.name);closeModal();}} C={C}>حفظ</Btn><Btn onClick={closeModal} C={C}>إلغاء</Btn></div></Modal>
+      <Modal open={modal==="myName"} onClose={closeModal} title="👷 اسمك" C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder="أنا" C={C}/><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{setFacField("myName",tmp||"أنا");closeModal();}} C={C}>حفظ</Btn><Btn onClick={closeModal} C={C}>إلغاء</Btn></div></Modal>
+      <Modal open={modal==="price"} onClose={closeModal} title="⚙️ سعر القنطار" C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder="14" center large C={C}/><div style={{fontSize:12,color:C.outline,marginTop:8,textAlign:"center"}}>إجمالي × السعر ÷ 3 عمال (د.ج)</div><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{setFacField("pricePerQ",parseFloat(tmp)||14);closeModal();}} C={C}>حفظ</Btn><Btn onClick={closeModal} C={C}>إلغاء</Btn></div></Modal>
+      <Modal open={modal==="renWeek"} onClose={closeModal} title="✏️ تغيير اسم الأسبوع" C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder={week.label} C={C}/><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{mutWeek(w=>({...w,label:tmp||w.label}));closeModal();}} C={C}>حفظ</Btn><Btn onClick={closeModal} C={C}>إلغاء</Btn></div></Modal>
+      <Modal open={modal==="delWeek"} onClose={closeModal} title="🗑️ حذف الأسبوع" danger C={C}><div style={{fontSize:15,lineHeight:1.7,marginBottom:6}}>حذف <strong>{week.label}</strong>؟<br/><span style={{fontSize:12,color:C.outline}}>لا يمكن التراجع.</span></div><div style={{display:"flex",gap:8,marginTop:20}}><Btn danger onClick={deleteWeek} disabled={factory.weeks.length<=1} C={C}>🗑️ حذف</Btn><Btn filled onClick={closeModal} C={C}>إلغاء</Btn></div></Modal>
+      <Modal open={modal==="goal"} onClose={closeModal} title="🎯 الهدف الأسبوعي" C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder="0" center large C={C}/><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{setFacField("weeklyGoal",parseFloat(tmp)||0);closeModal();}} C={C}>حفظ</Btn><Btn onClick={()=>{setFacField("weeklyGoal",0);closeModal();}} C={C}>إزالة</Btn></div></Modal>
+      <Modal open={modal==="addAdv"} onClose={closeModal} title="💸 إضافة سلفة / خصم" C={C}>
         <Label C={C}>المبلغ (د.ج)</Label>
         <Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder="0" center large C={C} style={{marginBottom:14}}/>
         <Label C={C}>ملاحظة (اختياري)</Label>
-        <Input value={tmp2} onChange={e=>setTmp2(e.target.value)} placeholder={lang==="fr"?"Avance / Dette / Déduction ...":"سلفة / دين / خصم ..."} C={C}/>
+        <Input value={tmp2} onChange={e=>setTmp2(e.target.value)} placeholder="سلفة / دين / خصم ..." C={C}/>
         <div style={{fontSize:12,color:C.error,marginTop:10,background:C.errorContainer,borderRadius:12,padding:"8px 12px"}}>
           ⚠️ سيُخصم هذا المبلغ من صافي نصيبك في هذا الأسبوع.
         </div>
         <div style={{display:"flex",gap:8,marginTop:20}}>
-          <Btn danger onClick={()=>{if(parseFloat(tmp)>0){addAdv(tmp,tmp2);closeModal();}}} C={C}>{T.add_confirm}</Btn>
-          <Btn filled onClick={closeModal} C={C}>{T.cancel}</Btn>
+          <Btn danger onClick={()=>{if(parseFloat(tmp)>0){addAdv(tmp,tmp2);closeModal();}}} C={C}>➕ إضافة الخصم</Btn>
+          <Btn filled onClick={closeModal} C={C}>إلغاء</Btn>
         </div>
       </Modal>
       {factories.map(f=>(
-        <Modal key={f.id} open={modal===`delFac:${f.id}`} onClose={closeModal} title=T.delete_factory danger C={C}>
-          <div style={{fontSize:15,lineHeight:1.7,marginBottom:6}}>حذف <strong>{f.name}</strong> وجميع بياناته؟<br/><span style={{fontSize:12,color:C.outline}}>{T.delete_week_confirm}</span></div>
-          <div style={{display:"flex",gap:8,marginTop:20}}><Btn danger onClick={()=>deleteFac(f.id)} C={C}>🗑️ نعم</Btn><Btn filled onClick={closeModal} C={C}>{T.cancel}</Btn></div>
+        <Modal key={f.id} open={modal===`delFac:${f.id}`} onClose={closeModal} title="🗑️ حذف المصنع" danger C={C}>
+          <div style={{fontSize:15,lineHeight:1.7,marginBottom:6}}>حذف <strong>{f.name}</strong> وجميع بياناته؟<br/><span style={{fontSize:12,color:C.outline}}>لا يمكن التراجع.</span></div>
+          <div style={{display:"flex",gap:8,marginTop:20}}><Btn danger onClick={()=>deleteFac(f.id)} C={C}>🗑️ نعم</Btn><Btn filled onClick={closeModal} C={C}>إلغاء</Btn></div>
         </Modal>
       ))}
 
@@ -441,12 +363,12 @@ function App(){
             <div style={{width:40,height:40,borderRadius:12,background:`linear-gradient(135deg,${C.primary},${C.secondary||C.primary}BB)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:"0 2px 6px rgba(0,0,0,.12)"}}>🧂</div>
             <div style={{textAlign:"right"}}>
               <div style={{fontWeight:800,fontSize:15,color:C.onSurface,display:"flex",alignItems:"center",gap:4}}>{factory.name}<span style={{fontSize:11,color:C.outline}}>▾</span></div>
-              {factories.length>1&&<div style={{fontSize:10,color:C.outline}}>{factories.length} {T.factories_count}</div>}
+              {factories.length>1&&<div style={{fontSize:10,color:C.outline}}>{factories.length} مصانع</div>}
             </div>
           </button>
           <div style={{display:"flex",gap:6}}>
             <button onClick={()=>openModal("myName",factory.myName)} style={{background:C.primaryContainer,border:"none",borderRadius:100,padding:"5px 12px",display:"flex",alignItems:"center",gap:5,cursor:"pointer",color:C.onPrimaryContainer,fontFamily:"inherit",fontWeight:700,fontSize:13}}>👷 {factory.myName}</button>
-            <button onClick={()=>setTab("settings")} style={{background:C.scHighest,border:`1px solid ${C.outlineVariant}`,borderRadius:100,padding:"5px 14px",cursor:"pointer",color:C.onSurfaceVariant,fontFamily:"inherit",fontSize:13,fontWeight:600}}>{T.settings_btn}</button>
+            <button onClick={()=>setTab("settings")} style={{background:C.scHighest,border:`1px solid ${C.outlineVariant}`,borderRadius:100,padding:"5px 14px",cursor:"pointer",color:C.onSurfaceVariant,fontFamily:"inherit",fontSize:13,fontWeight:600}}>⚙️ إعدادات</button>
           </div>
         </div>
       </div>
@@ -457,9 +379,9 @@ function App(){
         {/* Week bar */}
         <div style={{background:C.scLowest,borderRadius:20,padding:"12px 14px",marginBottom:14,border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-            <div style={{fontSize:11,fontWeight:700,color:C.outline,letterSpacing:".5px"}}>{T.weeks_label}</div>
+            <div style={{fontSize:11,fontWeight:700,color:C.outline,letterSpacing:".5px"}}>الأسابيع</div>
             <div style={{display:"flex",gap:6}}>
-              <button onClick={()=>openModal("renWeek",week.label)} style={{background:"transparent",border:`1px solid ${C.outlineVariant}`,borderRadius:100,padding:"3px 10px",fontSize:11,color:C.onSurfaceVariant,cursor:"pointer",fontFamily:"inherit"}}>{T.rename}</button>
+              <button onClick={()=>openModal("renWeek",week.label)} style={{background:"transparent",border:`1px solid ${C.outlineVariant}`,borderRadius:100,padding:"3px 10px",fontSize:11,color:C.onSurfaceVariant,cursor:"pointer",fontFamily:"inherit"}}>✏️ تغيير الاسم</button>
               <button onClick={()=>openModal("delWeek")} style={{background:C.errorContainer,border:"none",borderRadius:100,padding:"3px 10px",fontSize:11,color:C.onErrorContainer,cursor:"pointer",fontFamily:"inherit",fontWeight:600,opacity:factory.weeks.length<=1?.4:1}}>🗑️ حذف</button>
             </div>
           </div>
@@ -467,13 +389,13 @@ function App(){
             {factory.weeks.map((w,wi)=>(
               <Chip key={w.id} active={wi===safeAw} label={`${wi===bestWkIdx&&factory.weeks.length>1?"🏆 ":""}${w.label}${w.settled?" ✅":""}`} onClick={()=>mutFac(f=>({...f,activeWeek:wi}))} C={C}/>
             ))}
-            <button onClick={addWeek} style={{background:"transparent",border:`1.5px dashed ${C.outline}`,borderRadius:100,padding:"7px 16px",fontSize:12,color:C.outline,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>{T.new_week}</button>
+            <button onClick={addWeek} style={{background:"transparent",border:`1.5px dashed ${C.outline}`,borderRadius:100,padding:"7px 16px",fontSize:12,color:C.outline,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>+ أسبوع جديد</button>
           </div>
         </div>
 
         {/* Tabs */}
         <div style={{display:"flex",background:C.scHighest,borderRadius:100,padding:4,marginBottom:18,gap:3,border:`1px solid ${C.outlineVariant}`}}>
-          {[{k:"days",l:T.days_tab},{k:"advances",l:T.advances_tab},{k:"summary",l:T.summary_tab}].map(t=>(
+          {[{k:"days",l:"📋 الأيام"},{k:"advances",l:"💸 السلف"},{k:"summary",l:"📊 الملخص"}].map(t=>(
             <button key={t.k} onClick={()=>setTab(t.k)} style={{flex:1,padding:"8px 2px",borderRadius:100,border:"none",
               background:tab===t.k?C.scLowest:"transparent",color:tab===t.k?C.primary:C.onSurfaceVariant,
               fontFamily:"inherit",fontSize:10,fontWeight:tab===t.k?700:400,
@@ -490,7 +412,7 @@ function App(){
         {/* ════ DAYS ════ */}
         {tab==="days"&&(
           <div style={{display:"flex",flexDirection:"column",gap:14,animation:"slideUp .2s ease"}}>
-            {(T.days||DAYS).map((dayName,di)=>{
+            {DAYS.map((dayName,di)=>{
               const d=week.days[di];
               const mQ=parseFloat(d.morning.q)||0,eQ=d.evening?(parseFloat(d.evening.q)||0):0;
               const tot=mQ+eQ,mine=(tot*pricePerQ)/3,has=tot>0;
@@ -501,24 +423,24 @@ function App(){
                     <div style={{display:"flex",alignItems:"center",gap:10}}>
                       <div style={{width:32,height:32,borderRadius:10,background:isBest?"#B8860B":has?C.primary:C.scLowest,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:has?C.onPrimary:C.outline}}>{isBest?"🥇":di+1}</div>
                       <span style={{fontWeight:700,fontSize:15,color:isBest?"#B8860B":has?C.onPrimaryContainer:C.onSurface}}>{dayName}</span>
-                      {d.evening&&<span style={{background:C.tertiaryContainer,color:C.onTertiaryContainer,borderRadius:100,fontSize:10,padding:"2px 9px",fontWeight:700}}>{T.two_shifts}</span>}
+                      {d.evening&&<span style={{background:C.tertiaryContainer,color:C.onTertiaryContainer,borderRadius:100,fontSize:10,padding:"2px 9px",fontWeight:700}}>فترتان</span>}
                     </div>
-                    {has&&<div style={{textAlign:"left"}}><div style={{fontSize:10,color:C.outline,opacity:.7}}>{T.my_share}</div><div style={{fontWeight:900,fontSize:18,color:isBest?"#B8860B":C.primary,lineHeight:1}}>{mine.toFixed(2)}</div></div>}
+                    {has&&<div style={{textAlign:"left"}}><div style={{fontSize:10,color:C.outline,opacity:.7}}>نصيبي</div><div style={{fontWeight:900,fontSize:18,color:isBest?"#B8860B":C.primary,lineHeight:1}}>{mine.toFixed(2)}</div></div>}
                   </div>
                   <div style={{padding:"14px 16px",display:"flex",flexDirection:"column",gap:10}}>
-                    <ShiftBlock shift={d.morning} onChange={(f,v)=>setShift(di,"morning",f,v)} disabled={week.settled} shiftLabel={T.morning} accent pricePerQ={pricePerQ} myName={factory.myName} workers={workers} C={C}/>
-                    {d.evening&&<ShiftBlock shift={d.evening} onChange={(f,v)=>setShift(di,"evening",f,v)} disabled={week.settled} shiftLabel={T.evening} accent={false} pricePerQ={pricePerQ} myName={factory.myName} workers={workers} C={C}/>}
+                    <ShiftBlock shift={d.morning} onChange={(f,v)=>setShift(di,"morning",f,v)} disabled={week.settled} shiftLabel="الفترة الصباحية" accent pricePerQ={pricePerQ} myName={factory.myName} workers={workers} C={C}/>
+                    {d.evening&&<ShiftBlock shift={d.evening} onChange={(f,v)=>setShift(di,"evening",f,v)} disabled={week.settled} shiftLabel="الفترة المسائية" accent={false} pricePerQ={pricePerQ} myName={factory.myName} workers={workers} C={C}/>}
                     {!week.settled&&(
                       <button onClick={()=>toggleEve(di)} style={{background:"transparent",border:`1.5px dashed ${d.evening?C.error:C.primary}`,borderRadius:12,padding:"7px 14px",color:d.evening?C.error:C.primary,fontSize:12,fontFamily:"inherit",cursor:"pointer",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
-                        {d.evening?T.removeEvening:T.addEvening}
+                        {d.evening?"🗑️ إزالة الفترة المسائية":"🌙 + إضافة فترة مسائية"}
                       </button>
                     )}
                     {has&&(
                       <div style={{display:"flex",gap:8,background:C.scHighest,borderRadius:14,padding:"10px 14px",marginTop:2}}>
                         {d.evening&&mQ>0&&(<><div style={{flex:1,textAlign:"center"}}><div style={{fontSize:10,color:C.outline}}>صباحي</div><div style={{fontWeight:700,fontSize:14}}>{(mQ*pricePerQ/3).toFixed(2)}</div></div><div style={{width:1,background:C.outlineVariant}}/><div style={{flex:1,textAlign:"center"}}><div style={{fontSize:10,color:C.outline}}>مسائي</div><div style={{fontWeight:700,fontSize:14}}>{(eQ*pricePerQ/3).toFixed(2)}</div></div><div style={{width:1,background:C.outlineVariant}}/></>)}
-                        <div style={{flex:1,textAlign:"center"}}><div style={{fontSize:10,color:C.outline}}>{T.daily_total}</div><div style={{fontWeight:800,fontSize:15,color:C.primary}}>{mine.toFixed(2)} {T.currency}</div></div>
+                        <div style={{flex:1,textAlign:"center"}}><div style={{fontSize:10,color:C.outline}}>إجمالي اليوم</div><div style={{fontWeight:800,fontSize:15,color:C.primary}}>{mine.toFixed(2)} د.ج</div></div>
                         <div style={{width:1,background:C.outlineVariant}}/>
-                        <div style={{flex:1,textAlign:"center"}}><div style={{fontSize:10,color:C.outline}}>{T.quintar_label}</div><div style={{fontWeight:700,fontSize:14}}>{tot.toFixed(1)}</div></div>
+                        <div style={{flex:1,textAlign:"center"}}><div style={{fontSize:10,color:C.outline}}>قناطر</div><div style={{fontWeight:700,fontSize:14}}>{tot.toFixed(1)}</div></div>
                       </div>
                     )}
                   </div>
@@ -536,7 +458,7 @@ function App(){
             {trend!==null&&(
               <div style={{background:trend>=0?`${C.primaryContainer}80`:C.errorContainer,borderRadius:16,padding:"10px 16px",display:"flex",alignItems:"center",gap:8}}>
                 <span style={{fontSize:20}}>{trend>=0?"📈":"📉"}</span>
-                <div><div style={{fontSize:13,fontWeight:700,color:trend>=0?C.primary:C.error}}>{trend>=0?"أفضل من الأسبوع الماضي":"أقل من الأسبوع الماضي"}</div><div style={{fontSize:11,color:C.outline}}>فرق {Math.abs(trend).toFixed(2)} {T.currency}</div></div>
+                <div><div style={{fontSize:13,fontWeight:700,color:trend>=0?C.primary:C.error}}>{trend>=0?"أفضل من الأسبوع الماضي":"أقل من الأسبوع الماضي"}</div><div style={{fontSize:11,color:C.outline}}>فرق {Math.abs(trend).toFixed(2)} د.ج</div></div>
               </div>
             )}
 
@@ -551,10 +473,10 @@ function App(){
             <div style={{background:C.scLowest,borderRadius:20,overflow:"hidden",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
               <div style={{padding:"12px 18px",background:C.scMed,borderBottom:`1px solid ${C.outlineVariant}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                 <div style={{fontWeight:700,fontSize:14}}>👷 أجر كل عامل — {week.label}</div>
-                <div style={{fontSize:11,color:C.outline}}>إجمالي: {(weekQ*pricePerQ).toFixed(2)} {T.currency}</div>
+                <div style={{fontSize:11,color:C.outline}}>إجمالي: {(weekQ*pricePerQ).toFixed(2)} د.ج</div>
               </div>
               {Object.keys(workerWages).length===0?(
-                <div style={{padding:"18px",fontSize:13,color:C.outline,textAlign:"center"}}>{T.worker_wages}...<//div>
+                <div style={{padding:"18px",fontSize:13,color:C.outline,textAlign:"center"}}>أدخل قناطر الأيام لعرض أجر كل عامل.</div>
               ):(
                 Object.entries(workerWages).sort((a,b)=>b[1]-a[1]).map(([name,amt],i,arr)=>{
                   const isMe=name===factory.myName?.trim();
@@ -578,7 +500,7 @@ function App(){
               )}
               {Object.keys(workerWages).length>0&&(
                 <div style={{padding:"12px 18px",background:C.scMed,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <span style={{fontSize:13,fontWeight:700}}>{T.total_wages}</span>
+                  <span style={{fontSize:13,fontWeight:700}}>مجموع الرواتب (الثلاثة)</span>
                   <span style={{fontSize:16,fontWeight:900,color:C.primary}}>{weekTotal.toFixed(2)} <span style={{fontSize:11}}>د.ج</span></span>
                 </div>
               )}
@@ -587,7 +509,7 @@ function App(){
             {/* ═══ ADVANCES / DEDUCTIONS ═══ */}
             <div style={{background:C.scLowest,borderRadius:20,overflow:"hidden",border:`1.5px solid ${advances.length>0?C.error+"50":C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
               <div style={{padding:"12px 18px",background:advances.length>0?`${C.errorContainer}`:C.scMed,borderBottom:`1px solid ${C.outlineVariant}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <div style={{fontWeight:700,fontSize:14,color:advances.length>0?C.onErrorContainer:C.onSurface}}>{T.advances_title}</div>
+                <div style={{fontWeight:700,fontSize:14,color:advances.length>0?C.onErrorContainer:C.onSurface}}>💸 السلف والخصومات</div>
                 {!week.settled&&<button onClick={()=>openModal("addAdv")} style={{background:C.error,border:"none",borderRadius:100,padding:"5px 14px",color:"#FFF",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>+ إضافة سلفة</button>}
               </div>
               {advances.length===0?(
@@ -607,8 +529,8 @@ function App(){
               {advances.length>0&&(
                 <div style={{padding:"14px 18px",background:C.errorContainer,borderTop:`1px solid ${C.error}30`}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                    <span style={{fontSize:13,color:C.onErrorContainer}}>{T.total_deductions}</span>
-                    <span style={{fontWeight:800,fontSize:16,color:C.error}}>— {totalAdv.toFixed(2)} {T.currency}</span>
+                    <span style={{fontSize:13,color:C.onErrorContainer}}>إجمالي الخصومات</span>
+                    <span style={{fontWeight:800,fontSize:16,color:C.error}}>— {totalAdv.toFixed(2)} د.ج</span>
                   </div>
                   <div style={{height:1,background:`${C.error}30`,marginBottom:10}}/>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -622,9 +544,9 @@ function App(){
             {/* Net tiles (only when advances exist) */}
             {advances.length>0&&(
               <div style={{display:"flex",gap:10}}>
-                <Tile icon="💰" label={T.before} value={weekMine.toFixed(2)} C={C}/>
-                <Tile icon="🔻" label={T.deductions}  value={totalAdv.toFixed(2)} danger C={C}/>
-                <Tile icon="✅" label={T.net_share}    value={netMine.toFixed(2)}  accent wide C={C}/>
+                <Tile icon="💰" label="قبل الخصم" value={weekMine.toFixed(2)} C={C}/>
+                <Tile icon="🔻" label="الخصومات"  value={totalAdv.toFixed(2)} danger C={C}/>
+                <Tile icon="✅" label="الصافي"    value={netMine.toFixed(2)}  accent wide C={C}/>
               </div>
             )}
 
@@ -633,7 +555,7 @@ function App(){
             {/* Goal */}
             {factory.weeklyGoal>0&&(
               <div style={{background:C.scLowest,borderRadius:20,padding:"16px 18px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><div style={{fontWeight:700,fontSize:14}}>🎯 الهدف الأسبوعي</div><div style={{fontSize:13,fontWeight:800,color:netMine>=factory.weeklyGoal?C.primary:C.outline}}>{netMine.toFixed(0)} / {factory.weeklyGoal.toFixed(0)} {T.currency}</div></div>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><div style={{fontWeight:700,fontSize:14}}>🎯 الهدف الأسبوعي</div><div style={{fontSize:13,fontWeight:800,color:netMine>=factory.weeklyGoal?C.primary:C.outline}}>{netMine.toFixed(0)} / {factory.weeklyGoal.toFixed(0)} د.ج</div></div>
                 <ProgressBar value={netMine} max={factory.weeklyGoal} C={C}/>
                 <div style={{fontSize:11,color:C.outline,marginTop:6}}>{netMine>=factory.weeklyGoal?"🎉 تحقق الهدف!":`متبقي ${(factory.weeklyGoal-netMine).toFixed(0)} د.ج`}</div>
               </div>
@@ -641,13 +563,13 @@ function App(){
 
             {/* Per-day breakdown */}
             <div style={{background:C.scLowest,borderRadius:20,overflow:"hidden",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
-              <div style={{padding:"12px 18px",borderBottom:`1px solid ${C.outlineVariant}`,background:C.scMed}}><div style={{fontWeight:700,fontSize:14}}>{T.day_detail}</div></div>
-              {(T.days||DAYS).map((name,di)=>{
+              <div style={{padding:"12px 18px",borderBottom:`1px solid ${C.outlineVariant}`,background:C.scMed}}><div style={{fontWeight:700,fontSize:14}}>تفصيل كل يوم</div></div>
+              {DAYS.map((name,di)=>{
                 const d=week.days[di];const tot=dayQ(d);const mine=(tot*pricePerQ)/3;const has=tot>0;const isBest=has&&di===bestDayIdx&&weekQ>0;
                 return(
                   <div key={di} style={{padding:"11px 18px",borderBottom:di<6?`1px solid ${C.outlineVariant}`:"none",background:isBest?"#FFF8DC":has?`${C.primaryContainer}40`:"transparent",display:"flex",alignItems:"center",justifyContent:"space-between",opacity:has?1:.4}}>
                     <div><div style={{fontWeight:600,fontSize:14,color:isBest?"#B8860B":C.onSurface}}>{isBest?"🥇 ":""}{name}</div>{has&&<div style={{fontSize:10,color:C.outline,marginTop:1}}>{d.morning.w1||"—"} · {d.morning.w2||"—"} · {factory.myName}</div>}</div>
-                    <div style={{textAlign:"left"}}>{has?(<div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:2}}><div style={{fontSize:11,color:C.outline}}>{tot.toFixed(1)} قنطار</div><div style={{fontWeight:800,fontSize:16,color:isBest?"#B8860B":C.primary}}>{mine.toFixed(2)} {T.currency}</div></div>):<span style={{fontSize:12,color:C.outline}}>{T.rest}</span>}</div>
+                    <div style={{textAlign:"left"}}>{has?(<div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:2}}><div style={{fontSize:11,color:C.outline}}>{tot.toFixed(1)} قنطار</div><div style={{fontWeight:800,fontSize:16,color:isBest?"#B8860B":C.primary}}>{mine.toFixed(2)} د.ج</div></div>):<span style={{fontSize:12,color:C.outline}}>راحة</span>}</div>
                   </div>
                 );
               })}
@@ -655,10 +577,10 @@ function App(){
 
             {/* Settle */}
             {!week.settled?(
-              <Btn filled onClick={()=>mutWeek(w=>({...w,settled:true}))} wide C={C} style={{padding:"14px 24px",fontSize:15,borderRadius:16}}>{T.settle_btn}</Btn>
+              <Btn filled onClick={()=>mutWeek(w=>({...w,settled:true}))} wide C={C} style={{padding:"14px 24px",fontSize:15,borderRadius:16}}>✅ إغلاق وتسوية الأسبوع</Btn>
             ):(
               <div style={{display:"flex",gap:10,alignItems:"center"}}>
-                <div style={{flex:1,background:C.primaryContainer,borderRadius:100,padding:"14px 20px",textAlign:"center",color:C.onPrimaryContainer,fontWeight:700,fontSize:14}}>{T.settled}</div>
+                <div style={{flex:1,background:C.primaryContainer,borderRadius:100,padding:"14px 20px",textAlign:"center",color:C.onPrimaryContainer,fontWeight:700,fontSize:14}}>✅ تمت التسوية</div>
                 <Btn onClick={()=>mutWeek(w=>({...w,settled:false}))} C={C} style={{padding:"14px 18px"}}>🔓</Btn>
               </div>
             )}
@@ -666,20 +588,20 @@ function App(){
             {/* All-time */}
             {factory.weeks.length>1&&(
               <div style={{background:`linear-gradient(135deg,${C.primaryContainer},${C.scMed})`,borderRadius:20,padding:"18px 20px",border:`1.5px solid ${C.primary}25`,boxShadow:"0 2px 10px rgba(0,0,0,.08)"}}>
-                <Label C={C} style={{color:C.onPrimaryContainer,marginBottom:12}}>{T.all_time} — {factory.myName}</Label>
+                <Label C={C} style={{color:C.onPrimaryContainer,marginBottom:12}}>🏆 الإجمالي الكلي — {factory.myName}</Label>
                 {factory.weeks.map((w,wi)=>{
                   const q=w.days.reduce((s,d)=>s+dayQ(d),0);
                   const mine=(q*pricePerQ)/3;const adv=weekAdv(w);const net=mine-adv;const isB=wi===bestWkIdx;
                   return(
                     <div key={w.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,background:isB?"#B8860B15":"transparent",borderRadius:10,padding:isB?"4px 8px":"4px 0"}}>
                       <span style={{fontSize:13,opacity:.85}}>{isB?"🏆 ":""}{w.label} — {q.toFixed(1)} قنطار {w.settled?"✅":""}{adv>0?` (خصم ${adv.toFixed(0)})`:""}  </span>
-                      <span style={{fontWeight:700,fontSize:14,color:isB?"#B8860B":C.primary}}>{net.toFixed(2)} {T.currency}</span>
+                      <span style={{fontWeight:700,fontSize:14,color:isB?"#B8860B":C.primary}}>{net.toFixed(2)} د.ج</span>
                     </div>
                   );
                 })}
                 <div style={{height:1,background:C.outlineVariant,margin:"8px 0"}}/>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:4}}>
-                  <span style={{fontWeight:700}}>{T.net_total}</span>
+                  <span style={{fontWeight:700}}>الصافي الكلي</span>
                   <span style={{fontWeight:900,fontSize:26,color:C.primary}}>{allNet.toFixed(2)} <span style={{fontSize:13}}>د.ج</span></span>
                 </div>
               </div>
@@ -712,8 +634,8 @@ function App(){
               {advances.length===0?(
                 <div style={{padding:"32px 18px",fontSize:14,color:C.outline,textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
                   <span style={{fontSize:40}}>💰</span>
-                  <div>{T.no_advances}</div>
-                  <div style={{fontSize:11}}>{T.add_advance_hint}</div>
+                  <div>لا توجد سلف لهذا الأسبوع</div>
+                  <div style={{fontSize:11}}>اضغط الزر أعلاه لإضافة سلفة أو خصم</div>
                 </div>
               ):advances.map((adv,i)=>(
                 <div key={adv.id} style={{padding:"14px 18px",borderBottom:i<advances.length-1?`1px solid ${C.outlineVariant}`:"none",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -725,7 +647,7 @@ function App(){
                     </div>
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:10}}>
-                    <div style={{fontWeight:900,fontSize:18,color:C.error}}>— {parseFloat(adv.amount).toFixed(2)}<span style={{fontSize:11}}> {T.currency}</span></div>
+                    <div style={{fontWeight:900,fontSize:18,color:C.error}}>— {parseFloat(adv.amount).toFixed(2)}<span style={{fontSize:11}}> د.ج</span></div>
                     {!week.settled&&(
                       <button onClick={()=>delAdv(adv.id)} style={{background:C.errorContainer,border:"none",borderRadius:100,width:30,height:30,cursor:"pointer",fontSize:14,color:C.onErrorContainer,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
                     )}
@@ -736,16 +658,16 @@ function App(){
               {advances.length>0&&(
                 <div style={{padding:"14px 18px",background:C.errorContainer,borderTop:`1px solid ${C.error}30`}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                    <span style={{fontSize:13,color:C.onErrorContainer}}>{T.total_deductions}</span>
-                    <span style={{fontWeight:800,fontSize:16,color:C.error}}>— {totalAdv.toFixed(2)} {T.currency}</span>
+                    <span style={{fontSize:13,color:C.onErrorContainer}}>إجمالي الخصومات</span>
+                    <span style={{fontWeight:800,fontSize:16,color:C.error}}>— {totalAdv.toFixed(2)} د.ج</span>
                   </div>
                   <div style={{height:1,background:`${C.error}30`,marginBottom:10}}/>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                    <span style={{fontSize:13,color:C.onErrorContainer}}>{T.before_deduction}</span>
-                    <span style={{fontWeight:700,fontSize:15,color:C.onErrorContainer,textDecoration:"line-through",opacity:.7}}>{weekMine.toFixed(2)} {T.currency}</span>
+                    <span style={{fontSize:13,color:C.onErrorContainer}}>نصيبي قبل الخصم</span>
+                    <span style={{fontWeight:700,fontSize:15,color:C.onErrorContainer,textDecoration:"line-through",opacity:.7}}>{weekMine.toFixed(2)} د.ج</span>
                   </div>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                    <span style={{fontSize:15,fontWeight:800,color:C.onErrorContainer}}>{T.net}</span>
+                    <span style={{fontSize:15,fontWeight:800,color:C.onErrorContainer}}>✅ صافي نصيبي</span>
                     <span style={{fontWeight:900,fontSize:26,color:netMine>=0?C.primary:C.error}}>{netMine.toFixed(2)} <span style={{fontSize:13}}>د.ج</span></span>
                   </div>
                 </div>
@@ -755,9 +677,9 @@ function App(){
             {/* Quick summary tiles */}
             {advances.length>0&&(
               <div style={{display:"flex",gap:10}}>
-                <Tile icon="💰" label={T.before} value={weekMine.toFixed(2)} C={C}/>
-                <Tile icon="🔻" label={T.deductions}  value={totalAdv.toFixed(2)} danger C={C}/>
-                <Tile icon="✅" label={T.net_share}    value={netMine.toFixed(2)}  accent wide C={C}/>
+                <Tile icon="💰" label="قبل الخصم" value={weekMine.toFixed(2)} C={C}/>
+                <Tile icon="🔻" label="الخصومات"  value={totalAdv.toFixed(2)} danger C={C}/>
+                <Tile icon="✅" label="الصافي"    value={netMine.toFixed(2)}  accent wide C={C}/>
               </div>
             )}
 
@@ -803,7 +725,7 @@ function App(){
                   return(<div key={w.id} style={{marginBottom:10}}>
                     <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:4}}>
                       <span style={{fontWeight:isB?700:400}}>{isB?"🏆 ":""}{w.label}{weekAdv(w)>0?` (خصم ${weekAdv(w).toFixed(0)})`:""}</span>
-                      <span style={{fontWeight:700,color:isB?"#B8860B":C.primary}}>{net.toFixed(0)} {T.currency}</span>
+                      <span style={{fontWeight:700,color:isB?"#B8860B":C.primary}}>{net.toFixed(0)} د.ج</span>
                     </div>
                     <ProgressBar value={net} max={maxN||1} color={isB?"#B8860B":C.primary} C={C}/>
                   </div>);
@@ -821,7 +743,7 @@ function App(){
                   return(<div key={f.id} style={{marginBottom:10}}>
                     <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:4}}>
                       <span style={{fontWeight:isA?700:400}}>{isA?"📍 ":""}{f.name}</span>
-                      <span style={{fontWeight:700,color:fC.primary}}>{fNet.toFixed(0)} {T.currency}</span>
+                      <span style={{fontWeight:700,color:fC.primary}}>{fNet.toFixed(0)} د.ج</span>
                     </div>
                     <ProgressBar value={fNet} max={maxN||1} color={fC.primary} C={C}/>
                   </div>);
@@ -842,15 +764,15 @@ function App(){
         {tab==="settings"&&(
           <div style={{display:"flex",flexDirection:"column",gap:14,animation:"slideUp .2s ease"}}>
             <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
-              <div style={{fontWeight:800,fontSize:15,marginBottom:14}}>{T.theme_mode}</div>
+              <div style={{fontWeight:800,fontSize:15,marginBottom:14}}>🌗 وضع العرض</div>
               <div style={{display:"flex",gap:10}}>
-                {[{k:"light",l:T.light},{k:"dark",l:T.dark}].map(t=>(
+                {[{k:"light",l:"☀️ فاتح"},{k:"dark",l:"🌙 داكن"}].map(t=>(
                   <button key={t.k} onClick={()=>setThemeMode(t.k)} style={{flex:1,padding:"12px 8px",background:themeMode===t.k?C.primaryContainer:C.scHighest,color:themeMode===t.k?C.onPrimaryContainer:C.onSurfaceVariant,border:`2px solid ${themeMode===t.k?C.primary:C.outlineVariant}`,borderRadius:16,cursor:"pointer",fontFamily:"inherit",fontSize:14,fontWeight:themeMode===t.k?700:400,transition:"all .15s"}}>{t.l}</button>
                 ))}
               </div>
             </div>
             <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
-              <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>{T.factory_color}</div>
+              <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>🎨 لون هذا المصنع</div>
               <div style={{fontSize:12,color:C.outline,marginBottom:14}}>{factory.name}</div>
               <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
                 {Object.entries(PALETTES).map(([key,p])=>{
@@ -862,12 +784,12 @@ function App(){
               </div>
             </div>
             <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
-              <div style={{fontWeight:800,fontSize:15,marginBottom:14}}>{T.factory_settings}</div>
+              <div style={{fontWeight:800,fontSize:15,marginBottom:14}}>🏭 إعدادات المصنع الحالي</div>
               {[
-                {l:T.factory_name,v:factory.name,a:()=>openModal("facName",factory.name)},
-                {l:T.my_name,v:factory.myName,a:()=>openModal("myName",factory.myName)},
-                {l:T.price_q,v:`${pricePerQ} د.ج`,a:()=>openModal("price",String(pricePerQ))},
-                {l:T.weekly_goal,v:factory.weeklyGoal>0?`${factory.weeklyGoal} ${T.currency}`:T.not_set,a:()=>openModal("goal",String(factory.weeklyGoal))},
+                {l:"اسم المصنع",v:factory.name,a:()=>openModal("facName",factory.name)},
+                {l:"اسمي",v:factory.myName,a:()=>openModal("myName",factory.myName)},
+                {l:"سعر القنطار",v:`${pricePerQ} د.ج`,a:()=>openModal("price",String(pricePerQ))},
+                {l:"الهدف الأسبوعي",v:factory.weeklyGoal>0?`${factory.weeklyGoal} د.ج`:"غير محدد",a:()=>openModal("goal",String(factory.weeklyGoal))},
               ].map((row,i,arr)=>(
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:i<arr.length-1?`1px solid ${C.outlineVariant}`:"none"}}>
                   <span style={{fontSize:14}}>{row.l}</span>
@@ -877,31 +799,16 @@ function App(){
             </div>
             {workers.length>0&&(
               <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
-                <div style={{fontWeight:800,fontSize:15,marginBottom:12}}>{T.workers_registered}</div>
+                <div style={{fontWeight:800,fontSize:15,marginBottom:12}}>👷 العمال المسجلون</div>
                 <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
                   {workers.map((w,i)=><span key={i} style={{background:C.secondaryContainer,color:C.onSecondaryContainer,borderRadius:100,padding:"5px 14px",fontSize:12,fontWeight:600}}>{w}</span>)}
                 </div>
               </div>
             )}
-            {/* Language selector */}
             <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
-              <div style={{fontWeight:800,fontSize:15,marginBottom:14}}>{T.language_setting}</div>
-              <div style={{display:"flex",gap:10}}>
-                {[{k:"ar",l:"🇩🇿 العربية"},{k:"fr",l:"🇫🇷 Français"}].map(lg=>(
-                  <button key={lg.k} onClick={()=>setLang(lg.k)} style={{flex:1,padding:"12px 8px",
-                    background:lang===lg.k?C.primaryContainer:C.scHighest,
-                    color:lang===lg.k?C.onPrimaryContainer:C.onSurfaceVariant,
-                    border:`2px solid ${lang===lg.k?C.primary:C.outlineVariant}`,
-                    borderRadius:16,cursor:"pointer",fontFamily:"inherit",fontSize:14,
-                    fontWeight:lang===lg.k?700:400,transition:"all .15s"}}>{lg.l}</button>
-                ))}
-              </div>
-            </div>
-
-            <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
-              <div style={{fontWeight:800,fontSize:15,marginBottom:12}}>{T.about}</div>
+              <div style={{fontWeight:800,fontSize:15,marginBottom:12}}>ℹ️ عن التطبيق</div>
               <div style={{fontSize:13,color:C.outline,lineHeight:2}}>
-                {lang==="fr"?"Application de suivi de production":"تطبيق تتبع إنتاج المصانع"}<br/>{lang==="fr"?"Devise: Dinar Algérien (DA)":"العملة: الدينار الجزائري (د.ج)"}<br/>{lang==="fr"?"Usines":"المصانع"}: {factories.length} · {lang==="fr"?"Semaines":"الأسابيع"}: {factory.weeks.length}<br/>{lang==="fr"?"Données sauvegardées localement":"جميع البيانات محفوظة محلياً"}
+                تطبيق تتبع إنتاج المصانع<br/>العملة: الدينار الجزائري (د.ج)<br/>المصانع: {factories.length} · الأسابيع: {factory.weeks.length}<br/>جميع البيانات محفوظة محلياً
               </div>
             </div>
           </div>
