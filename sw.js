@@ -1,4 +1,4 @@
-const CACHE = "salt-factory-v1";
+const CACHE = "salt-factory-v2";
 const ASSETS = ["./", "./index.html"];
 
 self.addEventListener("install", e => {
