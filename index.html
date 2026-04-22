@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta name="apple-mobile-web-app-title" content="المصنع"/>
+  <meta name="theme-color" content="#006A60"/>
+  <title>مصنع تعليب الملح</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body, #root { height: 100%; }
+    body { font-family: 'Cairo','Noto Sans Arabic',Tahoma,sans-serif; }
+    #splash { position:fixed;inset:0;background:#006A60;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s; }
+    #splash.hide { opacity:0;pointer-events:none; }
+    #splash-icon { font-size:72px;margin-bottom:20px;animation:pulse 1.2s infinite; }
+    #splash-text { color:#9EF2E4;font-size:22px;font-weight:800;font-family:'Cairo',Tahoma,sans-serif; }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+  </style>
+</head>
+<body>
+  <div id="splash"><div id="splash-icon">🧂</div><div id="splash-text">المصنع</div></div>
+  <div id="root"></div>
+  <script>
+    if('serviceWorker'in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{});});}
+    window.addEventListener('load',()=>{setTimeout(()=>{const s=document.getElementById('splash');if(s){s.classList.add('hide');setTimeout(()=>s.remove(),400);}},800);});
+  </script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel" data-presets="react">
+    const { useState, useEffect } = React;
+
+// ═══════════════ M3 COLOR PALETTES ═══════════════
+const PALETTES = {
+  teal:   { name:"زمردي",  emoji:"🌊",
+    light:{ primary:"#006A60",onPrimary:"#FFF",primaryContainer:"#9EF2E4",onPrimaryContainer:"#00201C",secondary:"#4A6360",onSecondary:"#FFF",secondaryContainer:"#CCE8E4",onSecondaryContainer:"#051F1D",tertiary:"#456179",tertiaryContainer:"#CCE5FF",onTertiaryContainer:"#001E31",surface:"#F4FBF9",onSurface:"#161D1C",surfaceVariant:"#DAE5E2",onSurfaceVariant:"#3F4947",outline:"#6F7977",outlineVariant:"#BEC9C7",error:"#BA1A1A",errorContainer:"#FFDAD6",onErrorContainer:"#410002",scLowest:"#FFF",scLow:"#EEF5F3",scMed:"#E8F2F0",scHigh:"#E2ECEA",scHighest:"#DCE7E5"},
+    dark: { primary:"#82D5C8",onPrimary:"#003731",primaryContainer:"#00504A",onPrimaryContainer:"#9EF2E4",secondary:"#B0CCCA",onSecondary:"#1B3432",secondaryContainer:"#304947",onSecondaryContainer:"#CCE8E4",tertiary:"#AECBE8",tertiaryContainer:"#2D4A61",onTertiaryContainer:"#CCE5FF",surface:"#0E1514",onSurface:"#E0E8E6",surfaceVariant:"#3F4947",onSurfaceVariant:"#BEC9C7",outline:"#899391",outlineVariant:"#2F3937",error:"#FFB4AB",errorContainer:"#93000A",onErrorContainer:"#FFDAD6",scLowest:"#0B1210",scLow:"#161D1C",scMed:"#1A2120",scHigh:"#242B2A",scHighest:"#2E3533"},
+  },
+  blue:   { name:"سماوي",  emoji:"💙",
+    light:{ primary:"#0061A4",onPrimary:"#FFF",primaryContainer:"#D1E4FF",onPrimaryContainer:"#001D36",secondary:"#535F70",onSecondary:"#FFF",secondaryContainer:"#D7E3F7",onSecondaryContainer:"#101C2B",tertiary:"#6B5778",tertiaryContainer:"#F2DAFF",onTertiaryContainer:"#251431",surface:"#F8F9FF",onSurface:"#1A1C1E",surfaceVariant:"#DFE2EB",onSurfaceVariant:"#43474E",outline:"#73777F",outlineVariant:"#C3C6CF",error:"#BA1A1A",errorContainer:"#FFDAD6",onErrorContainer:"#410002",scLowest:"#FFF",scLow:"#F0F1F8",scMed:"#EAEBF3",scHigh:"#E4E6EE",scHighest:"#DEE0E8"},
+    dark: { primary:"#9ECAFF",onPrimary:"#003258",primaryContainer:"#00497D",onPrimaryContainer:"#D1E4FF",secondary:"#BBC7DB",onSecondary:"#253140",secondaryContainer:"#3B4858",onSecondaryContainer:"#D7E3F7",tertiary:"#D6BEE4",tertiaryContainer:"#523F5F",onTertiaryContainer:"#F2DAFF",surface:"#1A1C1E",onSurface:"#E2E2E6",surfaceVariant:"#43474E",onSurfaceVariant:"#C3C6CF",outline:"#8D9199",outlineVariant:"#33373E",error:"#FFB4AB",errorContainer:"#93000A",onErrorContainer:"#FFDAD6",scLowest:"#0F1012",scLow:"#1A1C1E",scMed:"#1E2022",scHigh:"#282A2C",scHighest:"#333537"},
+  },
+  purple: { name:"بنفسجي", emoji:"💜",
+    light:{ primary:"#6750A4",onPrimary:"#FFF",primaryContainer:"#EADDFF",onPrimaryContainer:"#21005D",secondary:"#625B71",onSecondary:"#FFF",secondaryContainer:"#E8DEF8",onSecondaryContainer:"#1D192B",tertiary:"#7D5260",tertiaryContainer:"#FFD8E4",onTertiaryContainer:"#31111D",surface:"#FFFBFE",onSurface:"#1C1B1F",surfaceVariant:"#E7E0EC",onSurfaceVariant:"#49454F",outline:"#79747E",outlineVariant:"#CAC4D0",error:"#B3261E",errorContainer:"#F9DEDC",onErrorContainer:"#410E0B",scLowest:"#FFF",scLow:"#F7F2FB",scMed:"#F3EDF7",scHigh:"#ECE6F0",scHighest:"#E6E0EB"},
+    dark: { primary:"#D0BCFF",onPrimary:"#381E72",primaryContainer:"#4F378B",onPrimaryContainer:"#EADDFF",secondary:"#CCC2DC",onSecondary:"#332D41",secondaryContainer:"#4A4458",onSecondaryContainer:"#E8DEF8",tertiary:"#EFB8C8",tertiaryContainer:"#633B48",onTertiaryContainer:"#FFD8E4",surface:"#1C1B1F",onSurface:"#E6E1E5",surfaceVariant:"#49454F",onSurfaceVariant:"#CAC4D0",outline:"#938F99",outlineVariant:"#3B383F",error:"#F2B8B5",errorContainer:"#8C1D18",onErrorContainer:"#F9DEDC",scLowest:"#110F14",scLow:"#1C1B1F",scMed:"#201F23",scHigh:"#2B2930",scHighest:"#36343B"},
+  },
+  orange: { name:"برتقالي",emoji:"🔶",
+    light:{ primary:"#8B5000",onPrimary:"#FFF",primaryContainer:"#FFDDB6",onPrimaryContainer:"#2C1600",secondary:"#725A3A",onSecondary:"#FFF",secondaryContainer:"#FFDDB6",onSecondaryContainer:"#2A1700",tertiary:"#5A6023",tertiaryContainer:"#DEE58C",onTertiaryContainer:"#1A1E00",surface:"#FFF8F4",onSurface:"#201A13",surfaceVariant:"#F0E0CF",onSurfaceVariant:"#4F4539",outline:"#817567",outlineVariant:"#D3C4B4",error:"#BA1A1A",errorContainer:"#FFDAD6",onErrorContainer:"#410002",scLowest:"#FFF",scLow:"#F8F1EA",scMed:"#F3ECE4",scHigh:"#EDE6DD",scHighest:"#E7E0D7"},
+    dark: { primary:"#FFB869",onPrimary:"#4A2800",primaryContainer:"#6A3B00",onPrimaryContainer:"#FFDDB6",secondary:"#DFC19A",onSecondary:"#3F2C0F",secondaryContainer:"#584023",onSecondaryContainer:"#FFDDB6",tertiary:"#C2C973",tertiaryContainer:"#424900",onTertiaryContainer:"#DEE58C",surface:"#201A13",onSurface:"#EDE0D4",surfaceVariant:"#4F4539",onSurfaceVariant:"#D3C4B4",outline:"#9C8E80",outlineVariant:"#3D3428",error:"#FFB4AB",errorContainer:"#93000A",onErrorContainer:"#FFDAD6",scLowest:"#130E08",scLow:"#201A13",scMed:"#261E16",scHigh:"#302820",scHighest:"#3C3229"},
+  },
+  green:  { name:"أخضر",  emoji:"🌿",
+    light:{ primary:"#276A28",onPrimary:"#FFF",primaryContainer:"#AAEEA9",onPrimaryContainer:"#002202",secondary:"#516351",onSecondary:"#FFF",secondaryContainer:"#CCE8C8",onSecondaryContainer:"#072007",tertiary:"#39656B",tertiaryContainer:"#BCEBF2",onTertiaryContainer:"#001F23",surface:"#F5FBF0",onSurface:"#181D17",surfaceVariant:"#DCE8D7",onSurfaceVariant:"#404941",outline:"#707971",outlineVariant:"#C0C9BF",error:"#BA1A1A",errorContainer:"#FFDAD6",onErrorContainer:"#410002",scLowest:"#FFF",scLow:"#EEF4EA",scMed:"#E8F2E5",scHigh:"#E2ECDE",scHighest:"#DCE6D8"},
+    dark: { primary:"#8FD28E",onPrimary:"#003A03",primaryContainer:"#0C5210",onPrimaryContainer:"#AAEEA9",secondary:"#B1CCAE",onSecondary:"#1E341D",secondaryContainer:"#374B35",onSecondaryContainer:"#CCE8C8",tertiary:"#A1CFD5",tertiaryContainer:"#1F4D53",onTertiaryContainer:"#BCEBF2",surface:"#181D17",onSurface:"#DEE4D8",surfaceVariant:"#404941",onSurfaceVariant:"#C0C9BF",outline:"#8A9389",outlineVariant:"#303830",error:"#FFB4AB",errorContainer:"#93000A",onErrorContainer:"#FFDAD6",scLowest:"#0B100B",scLow:"#181D17",scMed:"#1C211B",scHigh:"#262B25",scHighest:"#31362F"},
+  },
+};
+
+const DAYS         = ["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
+const PALETTE_KEYS = Object.keys(PALETTES);
+
+// Get the date for each day of the current week (week starts Saturday)
+function getWeekDates(weekOffset=0) {
+  const today = new Date();
+  const dayOfWeek = today.getDay(); // 0=Sun, 6=Sat
+  // Days since last Saturday
+  const daysSinceSat = (dayOfWeek + 1) % 7; // Sat=0, Sun=1, Mon=2...
+  const saturday = new Date(today);
+  saturday.setDate(today.getDate() - daysSinceSat + (weekOffset * 7));
+  return Array.from({length:7}, (_,i) => {
+    const d = new Date(saturday);
+    d.setDate(saturday.getDate() + i);
+    return d;
+  });
+}
+
+// ═══════════════ I18N ═══════════════
+const LANGS = {
+  ar: {
+    appName:"مصنع تعليب الملح", days:["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"],
+    morning:"الفترة الصباحية", evening:"الفترة المسائية",
+    worker1:"العامل الأول", worker2:"العامل الثاني", quintal:"قنطار",
+    addEvening:T.addEvening, removeEvening:T.removeEvening,
+    days_tab:"📋 الأيام", advances_tab:"💸 السلف", summary_tab:"📊 الملخص",
+    settings_btn:"⚙️ إعدادات", weeks_label:"الأسابيع", rename:"✏️ تغيير الاسم",
+    delete:"🗑️ حذف", new_week:"+ أسبوع جديد", week:"الأسبوع",
+    settled:"✅ تمت التسوية", settle_btn:"✅ إغلاق وتسوية الأسبوع", unlock:"🔓",
+    my_share:"نصيبي", daily_total:"إجمالي اليوم", rest:T.rest,
+    advances_title:"💸 السلف والخصومات", add_advance:"+ إضافة سلفة",
+    add_advance_btn:"💸 إضافة سلفة أو خصم", no_advances:"لا توجد سلف لهذا الأسبوع",
+    add_advance_hint:"اضغط الزر أعلاه لإضافة سلفة أو خصم",
+    total_deductions:"إجمالي الخصومات", before_deduction:"نصيبي قبل الخصم",
+    net:"✅ صافي نصيبي", amount:"المبلغ (د.ج)", note:"ملاحظة (اختياري)",
+    add_confirm:"➕ إضافة الخصم", cancel:"إلغاء", save:"حفظ",
+    factory_name:T.factory_name, my_name:T.my_name, price_q:T.price_q,
+    weekly_goal:T.weekly_goal, not_set:"غير محدد", currency:"د.ج",
+    workers_registered:"👷 العمال المسجلون", about:"ℹ️ عن التطبيق",
+    language_setting:"🌐 اللغة", factories_title:"🏭 المصانع",
+    add_factory:"＋ إضافة مصنع جديد", settled_week:"الأسبوع مُسوَّى — لا يمكن إضافة سلف",
+    worker_wages:"👷 أجر كل عامل", total_wages:"مجموع الرواتب (الثلاثة)",
+    all_time:"🏆 الإجمالي الكلي", net_total:"الصافي الكلي",
+    before:"قبل الخصم", deductions:"الخصومات", net_share:"الصافي",
+    day_detail:"تفصيل كل يوم", theme_mode:"🌗 وضع العرض", light:T.light, dark:T.dark,
+    factory_color:"🎨 لون هذا المصنع", factory_settings:"🏭 إعدادات المصنع الحالي",
+    per_worker:"لكل عامل:", quintar_label:"قنطار", two_shifts:"فترتان",
+    advance_modal_title:T.advance_modal_title, advance_warning:"⚠️ سيُخصم هذا المبلغ من صافي نصيبك في هذا الأسبوع.",
+    rename_week:T.rename_week, delete_week:T.delete_week,
+    delete_week_confirm:"لا يمكن التراجع.", delete_factory:T.delete_factory,
+    factory_name_title:T.factory_name_title, my_name_title:T.my_name_title,
+    goal_title:T.goal_title, goal_remove:"إزالة",
+    weeks_count:"أسبوع", factories_count:"مصانع",
+    name_placeholder:"الاسم", quintar_placeholder:"0",
+    advance_date_days:["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"],
+  },
+  en: {
+    appName:"Salt Factory", days:["Sat","Sun","Mon","Tue","Wed","Thu","Fri"],
+    morning:"Morning shift", evening:"Evening shift",
+    worker1:"Worker 1", worker2:"Worker 2", quintal:"Quintal",
+    addEvening:"🌙 + Add evening shift", removeEvening:"🗑️ Remove evening shift",
+    days_tab:"📋 Days", advances_tab:"💸 Advances", summary_tab:"📊 Summary",
+    settings_btn:"⚙️ Settings", weeks_label:"Weeks", rename:"✏️ Rename",
+    delete:"🗑️ Delete", new_week:"+ New week", week:"Week",
+    settled:"✅ Settled", settle_btn:"✅ Close & settle week", unlock:"🔓",
+    my_share:"My share", daily_total:"Day total", rest:"Off",
+    advances_title:"💸 Advances & Deductions", add_advance:"+ Add advance",
+    add_advance_btn:"💸 Add advance or deduction", no_advances:"No advances this week",
+    add_advance_hint:"Tap the button above to add an advance",
+    total_deductions:"Total deductions", before_deduction:"My share before deduction",
+    net:"✅ My net share", amount:"Amount (DA)", note:"Note (optional)",
+    add_confirm:"➕ Add deduction", cancel:"Cancel", save:"Save",
+    factory_name:"Factory name", my_name:"My name", price_q:"Price/quintal",
+    weekly_goal:"Weekly goal", not_set:"Not set", currency:"DA",
+    workers_registered:"👷 Registered workers", about:"ℹ️ About",
+    language_setting:"🌐 Language", factories_title:"🏭 Factories",
+    add_factory:"＋ Add new factory", settled_week:"Week settled — cannot add advances",
+    worker_wages:"👷 Each worker wage", total_wages:"Total wages (3 workers)",
+    all_time:"🏆 All-time total", net_total:"Net total",
+    before:"Before ded.", deductions:"Deductions", net_share:"Net",
+    day_detail:"Daily breakdown", theme_mode:"🌗 Display mode", light:"☀️ Light", dark:"🌙 Dark",
+    factory_color:"🎨 Factory color", factory_settings:"🏭 Factory settings",
+    per_worker:"Per worker:", quintar_label:"quintal", two_shifts:"2 shifts",
+    advance_modal_title:"💸 Add advance / deduction", advance_warning:"⚠️ This amount will be deducted from your net share this week.",
+    rename_week:"✏️ Rename week", delete_week:"🗑️ Delete week",
+    delete_week_confirm:"This cannot be undone.", delete_factory:"🗑️ Delete factory",
+    factory_name_title:"🏭 Factory name", my_name_title:"👷 Your name",
+    goal_title:"🎯 Weekly goal", goal_remove:"Remove",
+    weeks_count:"wks", factories_count:"factories",
+    name_placeholder:"Name", quintar_placeholder:"0",
+    advance_date_days:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+  },
+  fr: {
+    appName:"Usine de Sel", days:["Sam","Dim","Lun","Mar","Mer","Jeu","Ven"],
+    morning:"Période du matin", evening:"Période du soir",
+    worker1:"Ouvrier 1", worker2:"Ouvrier 2", quintal:"Quintal",
+    addEvening:"🌙 + Ajouter période du soir", removeEvening:"🗑️ Supprimer période du soir",
+    days_tab:"📋 Jours", advances_tab:"💸 Avances", summary_tab:"📊 Résumé",
+    settings_btn:"⚙️ Paramètres", weeks_label:"Semaines", rename:"✏️ Renommer",
+    delete:"🗑️ Suppr.", new_week:"+ Nouvelle semaine", week:"Semaine",
+    settled:"✅ Soldé", settle_btn:"✅ Clôturer et solder la semaine", unlock:"🔓",
+    my_share:"Ma part", daily_total:"Total jour", rest:"Repos",
+    advances_title:"💸 Avances & Déductions", add_advance:"+ Ajouter avance",
+    add_advance_btn:"💸 Ajouter une avance", no_advances:"Aucune avance cette semaine",
+    add_advance_hint:"Appuyez sur le bouton ci-dessus pour ajouter une avance",
+    total_deductions:"Total déductions", before_deduction:"Ma part avant déduction",
+    net:"✅ Ma part nette", amount:"Montant (DA)", note:"Remarque (optionnel)",
+    add_confirm:"➕ Ajouter", cancel:"Annuler", save:"Enregistrer",
+    factory_name:"Nom de l usine", my_name:"Mon nom", price_q:"Prix/quintal",
+    weekly_goal:"Objectif hebdo.", not_set:"Non défini", currency:"DA",
+    workers_registered:"👷 Ouvriers enregistrés", about:"ℹ️ À propos",
+    language_setting:"🌐 Langue", factories_title:"🏭 Usines",
+    add_factory:"＋ Ajouter une usine", settled_week:"Semaine soldée — impossible d ajouter",
+    worker_wages:"👷 Salaire de chaque ouvrier", total_wages:"Total salaires (3 ouvriers)",
+    all_time:"🏆 Total général", net_total:"Net total",
+    before:"Avant déd.", deductions:"Déductions", net_share:"Net",
+    day_detail:"Détail par jour", theme_mode:"🌗 Thème", light:"☀️ Clair", dark:"🌙 Sombre",
+    factory_color:"🎨 Couleur de cette usine", factory_settings:"🏭 Parametres de l usine",
+    per_worker:"Par ouvrier:", quintar_label:"quintal", two_shifts:"2 périodes",
+    advance_modal_title:"💸 Ajouter une avance", advance_warning:"⚠️ Ce montant sera déduit de votre part nette.",
+    rename_week:"✏️ Renommer la semaine", delete_week:"🗑️ Supprimer la semaine",
+    delete_week_confirm:"Cette action est irréversible.", delete_factory:"🗑️ Supprimer l usine",
+    factory_name_title:"🏭 Nom de l usine", my_name_title:"👷 Votre nom",
+    goal_title:"🎯 Objectif hebdomadaire", goal_remove:"Supprimer",
+    weeks_count:"sem.", factories_count:"usines",
+    name_placeholder:"Nom", quintar_placeholder:"0",
+    advance_date_days:["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"],
+  }
+};
+
+const emptyShift   = ()        => ({ w1:"", w2:"", q:"" });
+const emptyDay     = ()        => ({ morning:emptyShift(), evening:null });
+const emptyAdvance = (amt="",note="",lang="ar") => {
+  const now = new Date();
+  const dayNames = LANGS[lang]?.advance_date_days || LANGS.ar.advance_date_days;
+  const dayName = dayNames[now.getDay()];
+  const date = `${dayName} ${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+  return { id:Date.now()+Math.random(), amount:amt, note, date };
+};
+const emptyWeek    = (n,label) => ({ id:Date.now()+Math.random(), label:label||`${(LANGS.ar.week||'الأسبوع')} ${n}`, days:DAYS.map(emptyDay), settled:false, advances:[] });
+const newFactory   = (id,n)    => ({ id, name:n===1?"مصنع تعليب الملح":`مصنع ${n}`, myName:"أنا", pricePerQ:14, colorKey:PALETTE_KEYS[(n-1)%PALETTE_KEYS.length], weeks:[emptyWeek(1)], activeWeek:0, weeklyGoal:0 });
+
+function load(){ try{ return JSON.parse(localStorage.getItem("slt8")||"null"); }catch{ return null; } }
+function save(d){ try{ localStorage.setItem("slt8",JSON.stringify(d)); }catch{} }
+const getC  = (key,mode) => { const p=PALETTES[key]||PALETTES.teal; return p[mode]||p.light; };
+const dayQ  = d => (parseFloat(d.morning.q)||0)+(d.evening?parseFloat(d.evening.q)||0:0);
+const weekAdv = w => (w.advances||[]).reduce((s,a)=>s+(parseFloat(a.amount)||0),0);
+
+function calcWorkerWages(week, myName, pricePerQ){
+  const wages={};
+  week.days.forEach(d=>{
+    [d.morning,d.evening].forEach(sh=>{
+      if(!sh) return;
+      const q=parseFloat(sh.q)||0; if(!q) return;
+      const share=(q*pricePerQ)/3;
+      [sh.w1?.trim(),sh.w2?.trim(),myName?.trim()].filter(Boolean).forEach(n=>{ wages[n]=(wages[n]||0)+share; });
+    });
+  });
+  return wages;
+}
+
+function collectWorkers(factory){
+  const s=new Set();
+  factory.weeks.forEach(w=>w.days.forEach(d=>{
+    [d.morning.w1,d.morning.w2,...(d.evening?[d.evening.w1,d.evening.w2]:[])].forEach(n=>n&&n.trim()&&s.add(n.trim()));
+  }));
+  return [...s];
+}
+
+// ── Primitives ──────────────────────────────────────────────
+function Input({value,onChange,placeholder,disabled,center,large,C,style}){
+  const [f,setF]=useState(false);
+  return <input value={value} onChange={onChange} placeholder={placeholder} disabled={disabled}
+    onFocus={()=>setF(true)} onBlur={()=>setF(false)}
+    style={{background:disabled?C.scHigh:C.scLowest,border:`2px solid ${f?C.primary:C.outlineVariant}`,borderRadius:12,
+      padding:large?"11px 14px":"8px 12px",fontSize:large?18:13,fontWeight:large?700:400,fontFamily:"inherit",
+      color:C.onSurface,outline:"none",width:"100%",boxSizing:"border-box",textAlign:center?"center":"right",
+      opacity:disabled?.5:1,transition:"border-color .15s,box-shadow .15s",
+      boxShadow:f?`0 0 0 3px ${C.primaryContainer}40`:"none",...style}}/>;
+}
+
+function AutoInput({value,onChange,placeholder,disabled,suggestions=[],C}){
+  const [f,setF]=useState(false);
+  const [show,setShow]=useState(false);
+  const filtered=suggestions.filter(s=>s!==value&&s.toLowerCase().includes(value.toLowerCase()));
+  return(
+    <div style={{position:"relative"}}>
+      <input value={value} onChange={onChange} placeholder={placeholder} disabled={disabled}
+        onFocus={()=>{setF(true);setShow(true);}} onBlur={()=>{setF(false);setTimeout(()=>setShow(false),150);}}
+        style={{background:disabled?C.scHigh:C.scLowest,border:`2px solid ${f?C.primary:C.outlineVariant}`,borderRadius:12,
+          padding:"8px 12px",fontSize:13,fontFamily:"inherit",color:C.onSurface,outline:"none",
+          width:"100%",boxSizing:"border-box",textAlign:"right",opacity:disabled?.5:1,
+          transition:"border-color .15s",boxShadow:f?`0 0 0 3px ${C.primaryContainer}40`:"none"}}/>
+      {show&&filtered.length>0&&(
+        <div style={{position:"absolute",top:"100%",right:0,left:0,zIndex:200,background:C.scLowest,
+          border:`1px solid ${C.outlineVariant}`,borderRadius:12,marginTop:4,boxShadow:"0 4px 16px rgba(0,0,0,.12)",overflow:"hidden"}}>
+          {filtered.slice(0,4).map(s=>(
+            <div key={s} onMouseDown={()=>{onChange({target:{value:s}});setShow(false);}}
+              style={{padding:"9px 14px",fontSize:13,cursor:"pointer",color:C.onSurface,fontFamily:"inherit",borderBottom:`1px solid ${C.outlineVariant}`}}
+              onMouseEnter={e=>e.currentTarget.style.background=C.scMed}
+              onMouseLeave={e=>e.currentTarget.style.background="transparent"}>{s}</div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Btn({children,onClick,filled,tonal,danger,small,wide,disabled,C,style}){
+  const [h,setH]=useState(false);
+  const bg=filled?C.primary:tonal?C.secondaryContainer:danger?C.errorContainer:"transparent";
+  const col=filled?C.onPrimary:tonal?C.onSecondaryContainer:danger?C.onErrorContainer:C.onSurfaceVariant;
+  return(
+    <button onClick={onClick} disabled={disabled} onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
+      style={{background:bg,color:col,border:(!filled&&!tonal&&!danger)?`1.5px solid ${C.outlineVariant}`:"none",
+        borderRadius:100,padding:small?"6px 14px":"10px 22px",fontSize:small?12:14,fontWeight:600,fontFamily:"inherit",
+        cursor:disabled?"not-allowed":"pointer",transition:"all .15s",opacity:disabled?.4:h?.88:1,
+        transform:h&&!disabled?"translateY(-1px)":"none",letterSpacing:".1px",width:wide?"100%":"auto",
+        boxShadow:filled&&h?"0 3px 10px rgba(0,0,0,.15)":filled?"0 1px 4px rgba(0,0,0,.1)":"none",...style}}>{children}</button>
+  );
+}
+
+function Label({children,C,style}){
+  return <div style={{fontSize:11,fontWeight:700,color:C.outline,letterSpacing:".6px",marginBottom:5,...style}}>{children}</div>;
+}
+
+function Chip({label,active,onClick,C}){
+  return <button onClick={onClick} style={{background:active?C.primary:C.scHighest,color:active?C.onPrimary:C.onSurfaceVariant,border:"none",borderRadius:100,padding:"7px 16px",fontSize:12,fontFamily:"inherit",fontWeight:active?700:500,cursor:"pointer",whiteSpace:"nowrap",boxShadow:active?"0 1px 4px rgba(0,0,0,.12)":"none",transition:"all .15s"}}>{label}</button>;
+}
+
+function ProgressBar({value,max,color,C}){
+  const pct=max>0?Math.min((value/max)*100,100):0;
+  return <div style={{background:C.scHighest,borderRadius:100,height:8,overflow:"hidden"}}><div style={{width:`${pct}%`,height:"100%",background:color||C.primary,borderRadius:100,transition:"width .5s ease"}}/></div>;
+}
+
+function Tile({icon,label,value,sub,accent,wide,danger,C}){
+  return(
+    <div style={{background:danger?C.errorContainer:accent?C.primaryContainer:C.scLowest,borderRadius:20,padding:"14px 16px",
+      boxShadow:"0 1px 3px rgba(0,0,0,.08)",flex:wide?2:1,minWidth:0,
+      border:danger?`1.5px solid ${C.error}30`:accent?`1.5px solid ${C.primary}25`:`1px solid ${C.outlineVariant}`}}>
+      <div style={{fontSize:22,marginBottom:4}}>{icon}</div>
+      <div style={{fontSize:10,fontWeight:700,color:danger?C.onErrorContainer:accent?C.onPrimaryContainer:C.outline,letterSpacing:".5px",marginBottom:3}}>{label}</div>
+      <div style={{fontSize:22,fontWeight:900,color:danger?C.error:accent?C.primary:C.onSurface,lineHeight:1.1}}>{value}</div>
+      {sub&&<div style={{fontSize:10,color:C.outline,marginTop:3}}>{sub}</div>}
+    </div>
+  );
+}
+
+function Modal({open,onClose,title,children,danger,C}){
+  if(!open) return null;
+  return(
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.5)",backdropFilter:"blur(10px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:400,padding:20}} onClick={onClose}>
+      <div style={{background:C.scLow,borderRadius:28,padding:28,width:"100%",maxWidth:390,boxShadow:"0 8px 32px rgba(0,0,0,.2)",border:danger?`1.5px solid ${C.errorContainer}`:`1px solid ${C.outlineVariant}`}} onClick={e=>e.stopPropagation()}>
+        <div style={{fontWeight:800,fontSize:18,color:danger?C.error:C.onSurface,marginBottom:18}}>{title}</div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function ShiftBlock({shift,onChange,disabled,shiftLabel,accent,pricePerQ,myName,workers,C}){
+  const q=parseFloat(shift.q)||0;
+  const share=q>0?(q*pricePerQ)/3:0;
+  const w1n=shift.w1?.trim()||null;
+  const w2n=shift.w2?.trim()||null;
+  return(
+    <div style={{background:accent?`${C.primaryContainer}55`:`${C.surfaceVariant}40`,borderRadius:16,padding:"12px 14px",border:`1.5px solid ${accent?C.primaryContainer:C.outlineVariant}`}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+        <div style={{display:"inline-flex",alignItems:"center",gap:6,background:accent?C.primaryContainer:C.scHighest,borderRadius:100,padding:"3px 11px",fontSize:12,fontWeight:700,color:accent?C.onPrimaryContainer:C.onSurfaceVariant}}>
+          <span>{accent?"🌅":"🌙"}</span><span>{shiftLabel}</span>
+        </div>
+        {q>0&&<div style={{fontSize:12,fontWeight:800,color:C.primary,background:`${C.primaryContainer}80`,borderRadius:100,padding:"2px 10px"}}>{T.per_worker} {share.toFixed(2)} {T.currency}</div>}
+      </div>
+      <div style={{display:"flex",gap:8}}>
+        <div style={{flex:1}}><Label C={C}>{T.worker1}</Label><AutoInput value={shift.w1} onChange={e=>onChange("w1",e.target.value)} placeholder={T.name_placeholder} disabled={disabled} suggestions={workers} C={C}/></div>
+        <div style={{flex:1}}><Label C={C}>{T.worker2}</Label><AutoInput value={shift.w2} onChange={e=>onChange("w2",e.target.value)} placeholder={T.name_placeholder} disabled={disabled} suggestions={workers} C={C}/></div>
+        <div style={{width:72}}><Label C={C} style={{textAlign:"center"}}>{T.quintal}</Label><Input value={shift.q} onChange={e=>onChange("q",e.target.value)} placeholder="0" disabled={disabled} center large style={{padding:"8px 4px",fontSize:16}} C={C}/></div>
+      </div>
+      {q>0&&(
+        <div style={{display:"flex",gap:6,marginTop:10,flexWrap:"wrap"}}>
+          {[w1n,w2n,myName?.trim()].map((n,i)=>n&&(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:5,background:n===myName?.trim()?`${C.primary}18`:C.scHighest,borderRadius:100,padding:"4px 10px",border:`1px solid ${n===myName?.trim()?C.primary+"40":C.outlineVariant}`}}>
+              <span style={{fontSize:11,color:n===myName?.trim()?C.primary:C.onSurfaceVariant,fontWeight:n===myName?.trim()?700:500}}>{n}</span>
+              <span style={{fontSize:12,fontWeight:800,color:n===myName?.trim()?C.primary:C.onSurface}}>{share.toFixed(2)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+function App(){
+  const saved=load();
+  const [factories,       setFactories]       = useState(saved?.factories       || [newFactory(1,1)]);
+  const [activeFactoryId, setActiveFactoryId] = useState(saved?.activeFactoryId || (saved?.factories?.[0]?.id ?? 1));
+  const [themeMode,       setThemeMode]       = useState(saved?.themeMode       || "light");
+  const [tab,             setTab]             = useState("days");
+  const [modal,           setModal]           = useState(null);
+  const [tmp,             setTmp]             = useState("");
+  const [tmp2,            setTmp2]            = useState("");
+  const [copied,          setCopied]          = useState(false);
+  const [showFac,         setShowFac]         = useState(false);
+  const [lang,            setLang]            = useState(saved?.lang || "ar");
+  const T = LANGS[lang] || LANGS.ar;
+
+  useEffect(()=>save({factories,activeFactoryId,themeMode,lang}),[factories,activeFactoryId,themeMode,lang]);
+
+  useEffect(()=>{
+    const s=document.createElement("style"); s.id="slt-css";
+    s.textContent=`@keyframes slideUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}*{box-sizing:border-box}::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{border-radius:99px;background:#88888840}`;
+    if(!document.getElementById("slt-css")) document.head.appendChild(s);
+    return()=>{const el=document.getElementById("slt-css");if(el)el.remove();};
+  },[]);
+
+  // ── Back button handler (PWA) ──
+  // Track tab history for smart back navigation
+  const [tabHistory, setTabHistory] = useState(["days"]);
+
+  const navigateTo = (newTab) => {
+    setTab(newTab);
+    setTabHistory(prev => [...prev, newTab]);
+    window.history.pushState({page:"app", tab:newTab}, "");
+  };
+
+  const goBack = () => {
+    // 1. Close modal first
+    if(modal){ setModal(null); window.history.pushState({page:"app"}, ""); return; }
+    // 2. Close factory sheet
+    if(showFac){ setShowFac(false); window.history.pushState({page:"app"}, ""); return; }
+    // 3. Go to previous tab
+    if(tabHistory.length > 1){
+      const newHistory = tabHistory.slice(0,-1);
+      setTabHistory(newHistory);
+      setTab(newHistory[newHistory.length-1]);
+      return;
+    }
+    // 4. Already at root — push state to prevent close
+    window.history.pushState({page:"app"}, "");
+  };
+
+  useEffect(()=>{
+    window.history.pushState({page:"app"}, "");
+    window.addEventListener("popstate", goBack);
+    return () => window.removeEventListener("popstate", goBack);
+  }, [modal, showFac, tabHistory]);
+
+  const fIdx    = Math.max(0,factories.findIndex(f=>f.id===activeFactoryId));
+  const factory = factories[fIdx]||factories[0];
+  const C       = getC(factory.colorKey,themeMode);
+  const safeAw  = Math.min(factory.activeWeek??0,factory.weeks.length-1);
+  const week    = factory.weeks[safeAw];
+  // Calculate real dates for each day of this week
+  const weekDates = getWeekDates(safeAw);
+  const formatDate = (d) => `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+  const advances= week.advances||[];
+  const workers = collectWorkers(factory);
+  const pricePerQ=factory.pricePerQ;
+
+  const mutFac      = fn => setFactories(p=>p.map(f=>f.id===factory.id?fn(f):f));
+  const setFacField = (k,v) => mutFac(f=>({...f,[k]:v}));
+  const mutWeek     = fn => mutFac(fac=>({...fac,weeks:fac.weeks.map((w,i)=>i===safeAw?fn(w):w)}));
+  const setShift    = (di,sh,field,val) => mutWeek(w=>({...w,days:w.days.map((d,i)=>i!==di?d:{...d,[sh]:{...d[sh],[field]:val}})}));
+  const toggleEve   = di => mutWeek(w=>({...w,days:w.days.map((d,i)=>i!==di?d:{...d,evening:d.evening?null:emptyShift()})}));
+  const addWeek     = () => { const n=factory.weeks.length+1; mutFac(f=>({...f,weeks:[...f.weeks,emptyWeek(n)],activeWeek:f.weeks.length})); navigateTo("days"); };
+  const deleteWeek  = () => { if(factory.weeks.length<=1)return; mutFac(f=>({...f,weeks:f.weeks.filter((_,i)=>i!==safeAw),activeWeek:Math.max(0,safeAw-1)})); setModal(null); };
+  const addFactory  = () => { const id=Date.now();const n=factories.length+1;const nf={...newFactory(id,n),colorKey:PALETTE_KEYS[factories.length%PALETTE_KEYS.length]};setFactories(p=>[...p,nf]);setActiveFactoryId(id);setShowFac(false);setTab("days");setTimeout(()=>{setTmp(nf.name);setModal("facName");},200); };
+  const deleteFac   = id => { if(factories.length<=1)return;setFactories(p=>p.filter(f=>f.id!==id));if(activeFactoryId===id)setActiveFactoryId(factories.find(f=>f.id!==id)?.id);setModal(null); };
+  const addAdv      = (amt,note) => mutWeek(w=>({...w,advances:[...(w.advances||[]),emptyAdvance(amt,note,lang)]}));
+  const delAdv      = id => mutWeek(w=>({...w,advances:(w.advances||[]).filter(a=>a.id!==id)}));
+
+  // calcs
+  const weekQ       = week.days.reduce((s,d)=>s+dayQ(d),0);
+  const weekTotal   = weekQ*pricePerQ;
+  const weekMine    = weekTotal/3;
+  const totalAdv    = advances.reduce((s,a)=>s+(parseFloat(a.amount)||0),0);
+  const netMine     = weekMine-totalAdv;
+  const workerWages = calcWorkerWages(week,factory.myName,pricePerQ);
+  const activeDays  = week.days.filter(d=>dayQ(d)>0).length;
+  const predicted   = activeDays>0?(weekMine/activeDays)*7:0;
+  const allMine     = factory.weeks.reduce((s,w)=>(s+(w.days.reduce((ss,d)=>ss+dayQ(d),0)*pricePerQ)/3),0);
+  const allNet      = factory.weeks.reduce((s,w)=>{ const mine=(w.days.reduce((ss,d)=>ss+dayQ(d),0)*pricePerQ)/3; return s+mine-weekAdv(w); },0);
+  const bestWkIdx   = factory.weeks.reduce((b,w,i)=>{ const q=w.days.reduce((s,d)=>s+dayQ(d),0); const bq=factory.weeks[b].days.reduce((s,d)=>s+dayQ(d),0); return q>bq?i:b; },0);
+  const lastMine    = safeAw>0?((factory.weeks[safeAw-1].days.reduce((s,d)=>s+dayQ(d),0)*pricePerQ)/3):null;
+  const trend       = lastMine!==null?weekMine-lastMine:null;
+  const bestDayIdx  = week.days.reduce((b,d,i)=>dayQ(d)>dayQ(week.days[b])?i:b,0);
+
+  const copyReport=()=>{
+    const advLines=advances.length?["\n💸 السلف:",...advances.map(a=>`  — ${a.note||"سلفة"}: ${parseFloat(a.amount).toFixed(2)} د.ج`)]:[];
+    const lines=[`📋 ${week.label} — ${factory.name}`,`👷 ${factory.myName}`,"━━━━━━━━━━━━━",
+      ...week.days.map((d,i)=>{const q=dayQ(d);return q===0?`${DAYS[i]}: راحة`:`${DAYS[i]}: ${q} قنطار → ${((q*pricePerQ)/3).toFixed(2)} د.ج`;}),
+      "━━━━━━━━━━━━━",`⚖️ ${weekQ.toFixed(1)} قنطار`,`💰 ${weekMine.toFixed(2)} د.ج`,
+      ...advLines,totalAdv>0?`🔻 خصم: ${totalAdv.toFixed(2)} د.ج`:"",`✅ صافي: ${netMine.toFixed(2)} د.ج`,
+      week.settled?"☑️ مُسوَّى":"⏳ قيد التشغيل"].filter(Boolean);
+    navigator.clipboard?.writeText(lines.join("\n")).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2500);});
+  };
+
+  const openModal=(key,cur,cur2)=>{setTmp(cur??"");setTmp2(cur2??"");setModal(key);};
+  const closeModal=()=>setModal(null);
+
+  return(
+    <div style={{minHeight:"100vh",background:C.surface,fontFamily:"'Cairo','Noto Sans Arabic',Tahoma,sans-serif",direction:lang==="en"?"ltr":"rtl",color:C.onSurface,transition:"background .3s,color .3s"}}>
+
+      {/* FACTORY SHEET */}
+      {showFac&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",backdropFilter:"blur(10px)",zIndex:500}} onClick={()=>setShowFac(false)}>
+          <div style={{position:"absolute",bottom:0,left:0,right:0,background:C.scLow,borderRadius:"28px 28px 0 0",padding:"16px 16px 48px",maxHeight:"88vh",overflowY:"auto",animation:"sheetUp .25s ease"}} onClick={e=>e.stopPropagation()}>
+            <div style={{width:40,height:4,background:C.outlineVariant,borderRadius:2,margin:"0 auto 18px"}}/>
+            <div style={{fontWeight:800,fontSize:18,marginBottom:16}}>{T.factories_title}</div>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {factories.map(f=>{
+                const fC=getC(f.colorKey,themeMode);const isA=f.id===activeFactoryId;
+                const fNet=f.weeks.reduce((s,w)=>{const mine=(w.days.reduce((ss,d)=>ss+dayQ(d),0)*f.pricePerQ)/3;return s+mine-weekAdv(w);},0);
+                return(
+                  <div key={f.id} onClick={()=>{setActiveFactoryId(f.id);setShowFac(false);}} style={{background:isA?fC.primaryContainer:C.scHighest,borderRadius:20,padding:"14px 16px",border:`2px solid ${isA?fC.primary:C.outlineVariant}`,cursor:"pointer",display:"flex",alignItems:"center",gap:12,transition:"all .15s"}}>
+                    <div style={{width:48,height:48,borderRadius:14,background:`linear-gradient(135deg,${fC.primary},${fC.secondary||fC.primary}CC)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>🧂</div>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:700,fontSize:15,color:isA?fC.onPrimaryContainer:C.onSurface}}>{f.name}{isA?" ✓":""}</div>
+                      <div style={{fontSize:11,color:C.outline,marginTop:2}}>{f.weeks.length} {T.weeks_count} · {f.myName} · صافي <span style={{color:fC.primary,fontWeight:700}}>{fNet.toFixed(0)} {T.currency}</span></div>
+                    </div>
+                    <div style={{display:"flex",gap:6}}>
+                      <button onClick={e=>{e.stopPropagation();setActiveFactoryId(f.id);setShowFac(false);setTimeout(()=>{setTmp(f.name);setModal("facName");},100);}} style={{background:"transparent",border:`1px solid ${C.outlineVariant}`,borderRadius:100,width:32,height:32,cursor:"pointer",fontSize:13,color:C.onSurfaceVariant}}>✏️</button>
+                      {factories.length>1&&<button onClick={e=>{e.stopPropagation();setActiveFactoryId(f.id);setShowFac(false);setTimeout(()=>setModal("delFac:"+f.id),100);}} style={{background:C.errorContainer,border:"none",borderRadius:100,width:32,height:32,cursor:"pointer",fontSize:13}}>🗑️</button>}
+                    </div>
+                  </div>
+                );
+              })}
+              <button onClick={addFactory} style={{background:"transparent",border:`2px dashed ${C.outline}`,borderRadius:20,padding:"14px 16px",color:C.outline,cursor:"pointer",fontFamily:"inherit",fontSize:14,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>{T.add_factory}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODALS */}
+      <Modal open={modal==="facName"} onClose={closeModal} title=T.factory_name_title C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder=T.factory_name C={C}/><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{setFacField("name",tmp||factory.name);closeModal();}} C={C}>{T.save}</Btn><Btn onClick={closeModal} C={C}>{T.cancel}</Btn></div></Modal>
+      <Modal open={modal==="myName"} onClose={closeModal} title=T.my_name_title C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder={lang==="fr"?"Moi":lang==="en"?"Me":"أنا"} C={C}/><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{setFacField("myName",tmp||"أنا");closeModal();}} C={C}>{T.save}</Btn><Btn onClick={closeModal} C={C}>{T.cancel}</Btn></div></Modal>
+      <Modal open={modal==="price"} onClose={closeModal} title="⚙️ "+T.price_q C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder="14" center large C={C}/><div style={{fontSize:12,color:C.outline,marginTop:8,textAlign:"center"}}>إجمالي × السعر ÷ 3 عمال (د.ج)</div><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{setFacField("pricePerQ",parseFloat(tmp)||14);closeModal();}} C={C}>{T.save}</Btn><Btn onClick={closeModal} C={C}>{T.cancel}</Btn></div></Modal>
+      <Modal open={modal==="renWeek"} onClose={closeModal} title=T.rename_week C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder={week.label} C={C}/><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{mutWeek(w=>({...w,label:tmp||w.label}));closeModal();}} C={C}>{T.save}</Btn><Btn onClick={closeModal} C={C}>{T.cancel}</Btn></div></Modal>
+      <Modal open={modal==="delWeek"} onClose={closeModal} title=T.delete_week danger C={C}><div style={{fontSize:15,lineHeight:1.7,marginBottom:6}}>حذف <strong>{week.label}</strong>؟<br/><span style={{fontSize:12,color:C.outline}}>{T.delete_week_confirm}</span></div><div style={{display:"flex",gap:8,marginTop:20}}><Btn danger onClick={deleteWeek} disabled={factory.weeks.length<=1} C={C}>🗑️ حذف</Btn><Btn filled onClick={closeModal} C={C}>{T.cancel}</Btn></div></Modal>
+      <Modal open={modal==="goal"} onClose={closeModal} title=T.goal_title C={C}><Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder="0" center large C={C}/><div style={{display:"flex",gap:8,marginTop:20}}><Btn filled onClick={()=>{setFacField("weeklyGoal",parseFloat(tmp)||0);closeModal();}} C={C}>{T.save}</Btn><Btn onClick={()=>{setFacField("weeklyGoal",0);closeModal();}} C={C}>{T.goal_remove}</Btn></div></Modal>
+      <Modal open={modal==="addAdv"} onClose={closeModal} title=T.advance_modal_title C={C}>
+        <Label C={C}>المبلغ (د.ج)</Label>
+        <Input value={tmp} onChange={e=>setTmp(e.target.value)} placeholder="0" center large C={C} style={{marginBottom:14}}/>
+        <Label C={C}>ملاحظة (اختياري)</Label>
+        <Input value={tmp2} onChange={e=>setTmp2(e.target.value)} placeholder={lang==="fr"?"Avance / Dette / Déduction ...":lang==="en"?"Advance / Debt / Deduction ...":"سلفة / دين / خصم ..."} C={C}/>
+        <div style={{fontSize:12,color:C.error,marginTop:10,background:C.errorContainer,borderRadius:12,padding:"8px 12px"}}>
+          ⚠️ سيُخصم هذا المبلغ من صافي نصيبك في هذا الأسبوع.
+        </div>
+        <div style={{display:"flex",gap:8,marginTop:20}}>
+          <Btn danger onClick={()=>{if(parseFloat(tmp)>0){addAdv(tmp,tmp2);closeModal();}}} C={C}>{T.add_confirm}</Btn>
+          <Btn filled onClick={closeModal} C={C}>{T.cancel}</Btn>
+        </div>
+      </Modal>
+      {factories.map(f=>(
+        <Modal key={f.id} open={modal===`delFac:${f.id}`} onClose={closeModal} title=T.delete_factory danger C={C}>
+          <div style={{fontSize:15,lineHeight:1.7,marginBottom:6}}>حذف <strong>{f.name}</strong> وجميع بياناته؟<br/><span style={{fontSize:12,color:C.outline}}>{T.delete_week_confirm}</span></div>
+          <div style={{display:"flex",gap:8,marginTop:20}}><Btn danger onClick={()=>deleteFac(f.id)} C={C}>🗑️ نعم</Btn><Btn filled onClick={closeModal} C={C}>{T.cancel}</Btn></div>
+        </Modal>
+      ))}
+
+      {/* TOP BAR */}
+      <div style={{background:`${C.scMed}EE`,backdropFilter:"blur(16px)",borderBottom:`1px solid ${C.outlineVariant}`,position:"sticky",top:0,zIndex:50}}>
+        <div style={{maxWidth:640,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 16px",height:62}}>
+          <button onClick={()=>setShowFac(true)} style={{background:"transparent",border:"none",display:"flex",alignItems:"center",gap:10,cursor:"pointer",padding:0,fontFamily:"inherit"}}>
+            <div style={{width:40,height:40,borderRadius:12,background:`linear-gradient(135deg,${C.primary},${C.secondary||C.primary}BB)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:"0 2px 6px rgba(0,0,0,.12)"}}>🧂</div>
+            <div style={{textAlign:"right"}}>
+              <div style={{fontWeight:800,fontSize:15,color:C.onSurface,display:"flex",alignItems:"center",gap:4}}>{factory.name}<span style={{fontSize:11,color:C.outline}}>▾</span></div>
+              {factories.length>1&&<div style={{fontSize:10,color:C.outline}}>{factories.length} {T.factories_count}</div>}
+            </div>
+          </button>
+          <div style={{display:"flex",gap:6}}>
+            <button onClick={()=>openModal("myName",factory.myName)} style={{background:C.primaryContainer,border:"none",borderRadius:100,padding:"5px 12px",display:"flex",alignItems:"center",gap:5,cursor:"pointer",color:C.onPrimaryContainer,fontFamily:"inherit",fontWeight:700,fontSize:13}}>👷 {factory.myName}</button>
+            <button onClick={()=>navigateTo("settings")} style={{background:C.scHighest,border:`1px solid ${C.outlineVariant}`,borderRadius:100,padding:"5px 14px",cursor:"pointer",color:C.onSurfaceVariant,fontFamily:"inherit",fontSize:13,fontWeight:600}}>{T.settings_btn}</button>
+          </div>
+        </div>
+      </div>
+
+      {/* BODY */}
+      <div style={{maxWidth:640,margin:"0 auto",padding:"16px 14px 130px"}}>
+
+        {/* Week bar */}
+        <div style={{background:C.scLowest,borderRadius:20,padding:"12px 14px",marginBottom:14,border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+            <div style={{fontSize:11,fontWeight:700,color:C.outline,letterSpacing:".5px"}}>{T.weeks_label}</div>
+            <div style={{display:"flex",gap:6}}>
+              <button onClick={()=>openModal("renWeek",week.label)} style={{background:"transparent",border:`1px solid ${C.outlineVariant}`,borderRadius:100,padding:"3px 10px",fontSize:11,color:C.onSurfaceVariant,cursor:"pointer",fontFamily:"inherit"}}>{T.rename}</button>
+              <button onClick={()=>openModal("delWeek")} style={{background:C.errorContainer,border:"none",borderRadius:100,padding:"3px 10px",fontSize:11,color:C.onErrorContainer,cursor:"pointer",fontFamily:"inherit",fontWeight:600,opacity:factory.weeks.length<=1?.4:1}}>🗑️ حذف</button>
+            </div>
+          </div>
+          <div style={{display:"flex",gap:8,overflowX:"auto",paddingBottom:2,scrollbarWidth:"none"}}>
+            {factory.weeks.map((w,wi)=>(
+              <Chip key={w.id} active={wi===safeAw} label={`${wi===bestWkIdx&&factory.weeks.length>1?"🏆 ":""}${w.label}${w.settled?" ✅":""}`} onClick={()=>mutFac(f=>({...f,activeWeek:wi}))} C={C}/>
+            ))}
+            <button onClick={addWeek} style={{background:"transparent",border:`1.5px dashed ${C.outline}`,borderRadius:100,padding:"7px 16px",fontSize:12,color:C.outline,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>{T.new_week}</button>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div style={{display:"flex",background:C.scHighest,borderRadius:100,padding:4,marginBottom:18,gap:3,border:`1px solid ${C.outlineVariant}`}}>
+          {[{k:"days",l:T.days_tab},{k:"advances",l:T.advances_tab},{k:"summary",l:T.summary_tab}].map(t=>(
+            <button key={t.k} onClick={()=>navigateTo(t.k)} style={{flex:1,padding:"8px 2px",borderRadius:100,border:"none",
+              background:tab===t.k?C.scLowest:"transparent",color:tab===t.k?C.primary:C.onSurfaceVariant,
+              fontFamily:"inherit",fontSize:10,fontWeight:tab===t.k?700:400,
+              cursor:"pointer",boxShadow:tab===t.k?"0 1px 3px rgba(0,0,0,.08)":"none",transition:"all .2s",
+              position:"relative"}}>
+              {t.l}
+              {t.k==="advances"&&advances.length>0&&(
+                <span style={{position:"absolute",top:1,right:2,background:C.error,color:"#fff",borderRadius:100,fontSize:8,fontWeight:800,padding:"1px 4px",lineHeight:1.5}}>{advances.length}</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* ════ DAYS ════ */}
+        {tab==="days"&&(
+          <div style={{display:"flex",flexDirection:"column",gap:14,animation:"slideUp .2s ease"}}>
+            {(T.days||DAYS).map((dayName,di)=>{
+              const d=week.days[di];
+              const mQ=parseFloat(d.morning.q)||0,eQ=d.evening?(parseFloat(d.evening.q)||0):0;
+              const tot=mQ+eQ,mine=(tot*pricePerQ)/3,has=tot>0;
+              const isBest=has&&di===bestDayIdx&&weekQ>0;
+              return(
+                <div key={di} style={{background:C.scLowest,borderRadius:24,border:`2px solid ${isBest?"#B8860B":has?C.primaryContainer:C.outlineVariant}`,overflow:"hidden",boxShadow:isBest?"0 4px 16px #B8860B28":has?"0 2px 8px rgba(0,0,0,.08)":"none",transition:"all .2s"}}>
+                  <div style={{background:isBest?"#FFF8DC":has?`${C.primaryContainer}90`:C.scHighest,padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <div style={{width:32,height:32,borderRadius:10,background:isBest?"#B8860B":has?C.primary:C.scLowest,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:has?C.onPrimary:C.outline}}>{isBest?"🥇":di+1}</div>
+                      <div>
+                        <span style={{fontWeight:700,fontSize:15,color:isBest?"#B8860B":has?C.onPrimaryContainer:C.onSurface}}>{dayName}</span>
+                        <div style={{fontSize:10,color:isBest?"#B8860B":has?C.onPrimaryContainer:C.outline,opacity:.8,marginTop:1}}>{formatDate(weekDates[di])}</div>
+                      </div>
+                      {d.evening&&<span style={{background:C.tertiaryContainer,color:C.onTertiaryContainer,borderRadius:100,fontSize:10,padding:"2px 9px",fontWeight:700}}>{T.two_shifts}</span>}
+                    </div>
+                    {has&&<div style={{textAlign:"left"}}><div style={{fontSize:10,color:C.outline,opacity:.7}}>{T.my_share}</div><div style={{fontWeight:900,fontSize:18,color:isBest?"#B8860B":C.primary,lineHeight:1}}>{mine.toFixed(2)}</div></div>}
+                  </div>
+                  <div style={{padding:"14px 16px",display:"flex",flexDirection:"column",gap:10}}>
+                    <ShiftBlock shift={d.morning} onChange={(f,v)=>setShift(di,"morning",f,v)} disabled={week.settled} shiftLabel={T.morning} accent pricePerQ={pricePerQ} myName={factory.myName} workers={workers} C={C}/>
+                    {d.evening&&<ShiftBlock shift={d.evening} onChange={(f,v)=>setShift(di,"evening",f,v)} disabled={week.settled} shiftLabel={T.evening} accent={false} pricePerQ={pricePerQ} myName={factory.myName} workers={workers} C={C}/>}
+                    {!week.settled&&(
+                      <button onClick={()=>toggleEve(di)} style={{background:"transparent",border:`1.5px dashed ${d.evening?C.error:C.primary}`,borderRadius:12,padding:"7px 14px",color:d.evening?C.error:C.primary,fontSize:12,fontFamily:"inherit",cursor:"pointer",fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+                        {d.evening?T.removeEvening:T.addEvening}
+                      </button>
+                    )}
+                    {has&&(
+                      <div style={{display:"flex",gap:8,background:C.scHighest,borderRadius:14,padding:"10px 14px",marginTop:2}}>
+                        {d.evening&&mQ>0&&(<><div style={{flex:1,textAlign:"center"}}><div style={{fontSize:10,color:C.outline}}>صباحي</div><div style={{fontWeight:700,fontSize:14}}>{(mQ*pricePerQ/3).toFixed(2)}</div></div><div style={{width:1,background:C.outlineVariant}}/><div style={{flex:1,textAlign:"center"}}><div style={{fontSize:10,color:C.outline}}>مسائي</div><div style={{fontWeight:700,fontSize:14}}>{(eQ*pricePerQ/3).toFixed(2)}</div></div><div style={{width:1,background:C.outlineVariant}}/></>)}
+                        <div style={{flex:1,textAlign:"center"}}><div style={{fontSize:10,color:C.outline}}>{T.daily_total}</div><div style={{fontWeight:800,fontSize:15,color:C.primary}}>{mine.toFixed(2)} {T.currency}</div></div>
+                        <div style={{width:1,background:C.outlineVariant}}/>
+                        <div style={{flex:1,textAlign:"center"}}><div style={{fontSize:10,color:C.outline}}>{T.quintar_label}</div><div style={{fontWeight:700,fontSize:14}}>{tot.toFixed(1)}</div></div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ════ SUMMARY ════ */}
+        {tab==="summary"&&(
+          <div style={{display:"flex",flexDirection:"column",gap:14,animation:"slideUp .2s ease"}}>
+
+            {/* Trend */}
+            {trend!==null&&(
+              <div style={{background:trend>=0?`${C.primaryContainer}80`:C.errorContainer,borderRadius:16,padding:"10px 16px",display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:20}}>{trend>=0?"📈":"📉"}</span>
+                <div><div style={{fontSize:13,fontWeight:700,color:trend>=0?C.primary:C.error}}>{trend>=0?"أفضل من الأسبوع الماضي":"أقل من الأسبوع الماضي"}</div><div style={{fontSize:11,color:C.outline}}>فرق {Math.abs(trend).toFixed(2)} {T.currency}</div></div>
+              </div>
+            )}
+
+            {/* Main tiles */}
+            <div style={{display:"flex",gap:10}}>
+              <Tile icon="⚖️" label="القناطر" value={weekQ.toFixed(1)} sub={`${activeDays} أيام`} C={C}/>
+              <Tile icon="💰" label="إجمالي الثلاثة" value={(weekQ*pricePerQ).toFixed(0)} C={C}/>
+              <Tile icon="👤" label={`نصيب ${factory.myName}`} value={weekMine.toFixed(2)} accent wide C={C}/>
+            </div>
+
+            {/* ═══ WORKER WAGES ═══ */}
+            <div style={{background:C.scLowest,borderRadius:20,overflow:"hidden",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+              <div style={{padding:"12px 18px",background:C.scMed,borderBottom:`1px solid ${C.outlineVariant}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{fontWeight:700,fontSize:14}}>👷 أجر كل عامل — {week.label}</div>
+                <div style={{fontSize:11,color:C.outline}}>إجمالي: {(weekQ*pricePerQ).toFixed(2)} {T.currency}</div>
+              </div>
+              {Object.keys(workerWages).length===0?(
+                <div style={{padding:"18px",fontSize:13,color:C.outline,textAlign:"center"}}>{T.worker_wages}...<//div>
+              ):(
+                Object.entries(workerWages).sort((a,b)=>b[1]-a[1]).map(([name,amt],i,arr)=>{
+                  const isMe=name===factory.myName?.trim();
+                  const pct=weekTotal>0?(amt/weekTotal)*100:0;
+                  return(
+                    <div key={name} style={{padding:"12px 18px",borderBottom:i<arr.length-1?`1px solid ${C.outlineVariant}`:"none",background:isMe?`${C.primaryContainer}40`:"transparent"}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <div style={{width:28,height:28,borderRadius:8,background:isMe?C.primary:C.scHighest,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:isMe?C.onPrimary:C.outline}}>{isMe?"👤":"👷"}</div>
+                          <div>
+                            <div style={{fontSize:14,fontWeight:isMe?700:500,color:isMe?C.primary:C.onSurface}}>{name}{isMe?" (أنا)":""}</div>
+                            <div style={{fontSize:10,color:C.outline}}>{pct.toFixed(0)}% من الإجمالي</div>
+                          </div>
+                        </div>
+                        <div style={{textAlign:"left"}}><div style={{fontWeight:900,fontSize:18,color:isMe?C.primary:C.onSurface}}>{amt.toFixed(2)}</div><div style={{fontSize:10,color:C.outline,textAlign:"left"}}>د.ج</div></div>
+                      </div>
+                      <ProgressBar value={amt} max={weekTotal||1} color={isMe?C.primary:C.secondary||C.outline} C={C}/>
+                    </div>
+                  );
+                })
+              )}
+              {Object.keys(workerWages).length>0&&(
+                <div style={{padding:"12px 18px",background:C.scMed,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <span style={{fontSize:13,fontWeight:700}}>{T.total_wages}</span>
+                  <span style={{fontSize:16,fontWeight:900,color:C.primary}}>{weekTotal.toFixed(2)} <span style={{fontSize:11}}>د.ج</span></span>
+                </div>
+              )}
+            </div>
+
+            {/* ═══ ADVANCES / DEDUCTIONS ═══ */}
+            <div style={{background:C.scLowest,borderRadius:20,overflow:"hidden",border:`1.5px solid ${advances.length>0?C.error+"50":C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+              <div style={{padding:"12px 18px",background:advances.length>0?`${C.errorContainer}`:C.scMed,borderBottom:`1px solid ${C.outlineVariant}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{fontWeight:700,fontSize:14,color:advances.length>0?C.onErrorContainer:C.onSurface}}>{T.advances_title}</div>
+                {!week.settled&&<button onClick={()=>openModal("addAdv")} style={{background:C.error,border:"none",borderRadius:100,padding:"5px 14px",color:"#FFF",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>+ إضافة سلفة</button>}
+              </div>
+              {advances.length===0?(
+                <div style={{padding:"16px 18px",fontSize:13,color:C.outline,textAlign:"center"}}>لا توجد سلف</div>
+              ):advances.map((adv,i)=>(
+                <div key={adv.id} style={{padding:"11px 18px",borderBottom:i<advances.length-1?`1px solid ${C.outlineVariant}`:"none",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <div style={{width:32,height:32,borderRadius:10,background:C.errorContainer,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>💸</div>
+                    <div><div style={{fontSize:13,fontWeight:600}}>{adv.note||"سلفة"}</div><div style={{fontSize:10,color:C.outline}}>{adv.date}</div></div>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <div style={{fontWeight:800,fontSize:16,color:C.error}}>— {parseFloat(adv.amount).toFixed(2)} <span style={{fontSize:10}}>د.ج</span></div>
+                    {!week.settled&&<button onClick={()=>delAdv(adv.id)} style={{background:C.errorContainer,border:"none",borderRadius:100,width:26,height:26,cursor:"pointer",fontSize:13,color:C.onErrorContainer}}>×</button>}
+                  </div>
+                </div>
+              ))}
+              {advances.length>0&&(
+                <div style={{padding:"14px 18px",background:C.errorContainer,borderTop:`1px solid ${C.error}30`}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                    <span style={{fontSize:13,color:C.onErrorContainer}}>{T.total_deductions}</span>
+                    <span style={{fontWeight:800,fontSize:16,color:C.error}}>— {totalAdv.toFixed(2)} {T.currency}</span>
+                  </div>
+                  <div style={{height:1,background:`${C.error}30`,marginBottom:10}}/>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={{fontSize:14,fontWeight:700,color:C.onErrorContainer}}>صافي نصيبي</span>
+                    <span style={{fontWeight:900,fontSize:24,color:netMine>=0?C.primary:C.error}}>{netMine.toFixed(2)} <span style={{fontSize:13}}>د.ج</span></span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Net tiles (only when advances exist) */}
+            {advances.length>0&&(
+              <div style={{display:"flex",gap:10}}>
+                <Tile icon="💰" label={T.before} value={weekMine.toFixed(2)} C={C}/>
+                <Tile icon="🔻" label={T.deductions}  value={totalAdv.toFixed(2)} danger C={C}/>
+                <Tile icon="✅" label={T.net_share}    value={netMine.toFixed(2)}  accent wide C={C}/>
+              </div>
+            )}
+
+
+
+            {/* Goal */}
+            {factory.weeklyGoal>0&&(
+              <div style={{background:C.scLowest,borderRadius:20,padding:"16px 18px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><div style={{fontWeight:700,fontSize:14}}>🎯 الهدف الأسبوعي</div><div style={{fontSize:13,fontWeight:800,color:netMine>=factory.weeklyGoal?C.primary:C.outline}}>{netMine.toFixed(0)} / {factory.weeklyGoal.toFixed(0)} {T.currency}</div></div>
+                <ProgressBar value={netMine} max={factory.weeklyGoal} C={C}/>
+                <div style={{fontSize:11,color:C.outline,marginTop:6}}>{netMine>=factory.weeklyGoal?"🎉 تحقق الهدف!":`متبقي ${(factory.weeklyGoal-netMine).toFixed(0)} د.ج`}</div>
+              </div>
+            )}
+
+            {/* Per-day breakdown */}
+            <div style={{background:C.scLowest,borderRadius:20,overflow:"hidden",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+              <div style={{padding:"12px 18px",borderBottom:`1px solid ${C.outlineVariant}`,background:C.scMed}}><div style={{fontWeight:700,fontSize:14}}>{T.day_detail}</div></div>
+              {(T.days||DAYS).map((name,di)=>{
+                const d=week.days[di];const tot=dayQ(d);const mine=(tot*pricePerQ)/3;const has=tot>0;const isBest=has&&di===bestDayIdx&&weekQ>0;
+                return(
+                  <div key={di} style={{padding:"11px 18px",borderBottom:di<6?`1px solid ${C.outlineVariant}`:"none",background:isBest?"#FFF8DC":has?`${C.primaryContainer}40`:"transparent",display:"flex",alignItems:"center",justifyContent:"space-between",opacity:has?1:.4}}>
+                    <div>
+                      <div style={{fontWeight:600,fontSize:14,color:isBest?"#B8860B":C.onSurface}}>{isBest?"🥇 ":""}{name}</div>
+                      <div style={{fontSize:10,color:C.outline,marginTop:1}}>{formatDate(weekDates[di])}{has&&` · ${d.morning.w1||"—"} · ${d.morning.w2||"—"}`}</div>
+                    </div>
+                    <div style={{textAlign:"left"}}>{has?(<div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:2}}><div style={{fontSize:11,color:C.outline}}>{tot.toFixed(1)} قنطار</div><div style={{fontWeight:800,fontSize:16,color:isBest?"#B8860B":C.primary}}>{mine.toFixed(2)} {T.currency}</div></div>):<span style={{fontSize:12,color:C.outline}}>{T.rest}</span>}</div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Settle */}
+            {!week.settled?(
+              <Btn filled onClick={()=>mutWeek(w=>({...w,settled:true}))} wide C={C} style={{padding:"14px 24px",fontSize:15,borderRadius:16}}>{T.settle_btn}</Btn>
+            ):(
+              <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                <div style={{flex:1,background:C.primaryContainer,borderRadius:100,padding:"14px 20px",textAlign:"center",color:C.onPrimaryContainer,fontWeight:700,fontSize:14}}>{T.settled}</div>
+                <Btn onClick={()=>mutWeek(w=>({...w,settled:false}))} C={C} style={{padding:"14px 18px"}}>🔓</Btn>
+              </div>
+            )}
+
+            {/* All-time */}
+            {factory.weeks.length>1&&(
+              <div style={{background:`linear-gradient(135deg,${C.primaryContainer},${C.scMed})`,borderRadius:20,padding:"18px 20px",border:`1.5px solid ${C.primary}25`,boxShadow:"0 2px 10px rgba(0,0,0,.08)"}}>
+                <Label C={C} style={{color:C.onPrimaryContainer,marginBottom:12}}>{T.all_time} — {factory.myName}</Label>
+                {factory.weeks.map((w,wi)=>{
+                  const q=w.days.reduce((s,d)=>s+dayQ(d),0);
+                  const mine=(q*pricePerQ)/3;const adv=weekAdv(w);const net=mine-adv;const isB=wi===bestWkIdx;
+                  return(
+                    <div key={w.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,background:isB?"#B8860B15":"transparent",borderRadius:10,padding:isB?"4px 8px":"4px 0"}}>
+                      <span style={{fontSize:13,opacity:.85}}>{isB?"🏆 ":""}{w.label} — {q.toFixed(1)} قنطار {w.settled?"✅":""}{adv>0?` (خصم ${adv.toFixed(0)})`:""}  </span>
+                      <span style={{fontWeight:700,fontSize:14,color:isB?"#B8860B":C.primary}}>{net.toFixed(2)} {T.currency}</span>
+                    </div>
+                  );
+                })}
+                <div style={{height:1,background:C.outlineVariant,margin:"8px 0"}}/>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:4}}>
+                  <span style={{fontWeight:700}}>{T.net_total}</span>
+                  <span style={{fontWeight:900,fontSize:26,color:C.primary}}>{allNet.toFixed(2)} <span style={{fontSize:13}}>د.ج</span></span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ════ ADVANCES ════ */}
+        {tab==="advances"&&(
+          <div style={{display:"flex",flexDirection:"column",gap:14,animation:"slideUp .2s ease"}}>
+
+            {/* Add advance button */}
+            {!week.settled&&(
+              <button onClick={()=>openModal("addAdv")} style={{background:`linear-gradient(135deg,${C.error},#c62828)`,border:"none",borderRadius:20,padding:"16px 20px",color:"#FFF",fontSize:15,fontWeight:800,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:10,boxShadow:"0 4px 16px rgba(186,26,26,.3)"}}>
+                <span style={{fontSize:22}}>💸</span> إضافة سلفة أو خصم
+              </button>
+            )}
+            {week.settled&&(
+              <div style={{background:C.scHighest,borderRadius:16,padding:"12px 16px",fontSize:13,color:C.outline,textAlign:"center"}}>
+                الأسبوع مُسوَّى — لا يمكن إضافة سلف
+              </div>
+            )}
+
+            {/* Advances list */}
+            <div style={{background:C.scLowest,borderRadius:20,overflow:"hidden",border:`1.5px solid ${advances.length>0?C.error+"50":C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+              <div style={{padding:"12px 18px",background:advances.length>0?C.errorContainer:C.scMed,borderBottom:`1px solid ${C.outlineVariant}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{fontWeight:700,fontSize:14,color:advances.length>0?C.onErrorContainer:C.onSurface}}>💸 سلف {week.label}</div>
+                <div style={{fontSize:12,color:C.outline}}>{advances.length} سلفة</div>
+              </div>
+              {advances.length===0?(
+                <div style={{padding:"32px 18px",fontSize:14,color:C.outline,textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
+                  <span style={{fontSize:40}}>💰</span>
+                  <div>{T.no_advances}</div>
+                  <div style={{fontSize:11}}>{T.add_advance_hint}</div>
+                </div>
+              ):advances.map((adv,i)=>(
+                <div key={adv.id} style={{padding:"14px 18px",borderBottom:i<advances.length-1?`1px solid ${C.outlineVariant}`:"none",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:12}}>
+                    <div style={{width:40,height:40,borderRadius:12,background:C.errorContainer,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>💸</div>
+                    <div>
+                      <div style={{fontSize:14,fontWeight:600}}>{adv.note||"سلفة"}</div>
+                      <div style={{fontSize:11,color:C.outline,marginTop:2}}>{adv.date}</div>
+                    </div>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <div style={{fontWeight:900,fontSize:18,color:C.error}}>— {parseFloat(adv.amount).toFixed(2)}<span style={{fontSize:11}}> {T.currency}</span></div>
+                    {!week.settled&&(
+                      <button onClick={()=>delAdv(adv.id)} style={{background:C.errorContainer,border:"none",borderRadius:100,width:30,height:30,cursor:"pointer",fontSize:14,color:C.onErrorContainer,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {/* Total deductions */}
+              {advances.length>0&&(
+                <div style={{padding:"14px 18px",background:C.errorContainer,borderTop:`1px solid ${C.error}30`}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                    <span style={{fontSize:13,color:C.onErrorContainer}}>{T.total_deductions}</span>
+                    <span style={{fontWeight:800,fontSize:16,color:C.error}}>— {totalAdv.toFixed(2)} {T.currency}</span>
+                  </div>
+                  <div style={{height:1,background:`${C.error}30`,marginBottom:10}}/>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                    <span style={{fontSize:13,color:C.onErrorContainer}}>{T.before_deduction}</span>
+                    <span style={{fontWeight:700,fontSize:15,color:C.onErrorContainer,textDecoration:"line-through",opacity:.7}}>{weekMine.toFixed(2)} {T.currency}</span>
+                  </div>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={{fontSize:15,fontWeight:800,color:C.onErrorContainer}}>{T.net}</span>
+                    <span style={{fontWeight:900,fontSize:26,color:netMine>=0?C.primary:C.error}}>{netMine.toFixed(2)} <span style={{fontSize:13}}>د.ج</span></span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Quick summary tiles */}
+            {advances.length>0&&(
+              <div style={{display:"flex",gap:10}}>
+                <Tile icon="💰" label={T.before} value={weekMine.toFixed(2)} C={C}/>
+                <Tile icon="🔻" label={T.deductions}  value={totalAdv.toFixed(2)} danger C={C}/>
+                <Tile icon="✅" label={T.net_share}    value={netMine.toFixed(2)}  accent wide C={C}/>
+              </div>
+            )}
+
+          </div>
+        )}
+
+        {/* ════ TOOLS (kept for comparisons/export) ════ */}
+        {tab==="tools"&&(
+          <div style={{display:"flex",flexDirection:"column",gap:14,animation:"slideUp .2s ease"}}>
+            <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+              <div style={{fontWeight:800,fontSize:15,marginBottom:12}}>🔮 توقع نهاية الأسبوع</div>
+              {activeDays===0?<div style={{fontSize:13,color:C.outline}}>أدخل بيانات أيام أولاً.</div>:(<>
+                <div style={{display:"flex",gap:10,marginBottom:12}}>
+                  <Tile icon="📅" label="أيام مكتملة" value={`${activeDays}/7`} C={C}/>
+                  <Tile icon="📊" label="المعدل اليومي" value={(weekMine/activeDays).toFixed(2)} C={C}/>
+                  <Tile icon="🔮" label="التوقع الكلي" value={predicted.toFixed(2)} accent wide C={C}/>
+                </div>
+                <ProgressBar value={activeDays} max={7} C={C}/>
+                <div style={{fontSize:11,color:C.outline,marginTop:6}}>بناءً على {activeDays} يوم · المعدل نفسه</div>
+              </>)}
+            </div>
+            <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+              <div style={{fontWeight:800,fontSize:15,marginBottom:4,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <span>🎯 الهدف الأسبوعي</span>
+                <Btn small tonal onClick={()=>openModal("goal",String(factory.weeklyGoal))} C={C}>{factory.weeklyGoal>0?"تعديل":"تحديد"}</Btn>
+              </div>
+              {factory.weeklyGoal>0?(<>
+                <div style={{fontSize:13,color:C.outline,marginBottom:10}}>الهدف: <strong style={{color:C.onSurface}}>{factory.weeklyGoal.toFixed(0)} د.ج</strong></div>
+                <ProgressBar value={netMine} max={factory.weeklyGoal} C={C}/>
+                <div style={{display:"flex",justifyContent:"space-between",marginTop:8,fontSize:12}}>
+                  <span style={{color:C.outline}}>{((netMine/factory.weeklyGoal)*100).toFixed(0)}%</span>
+                  <span style={{color:netMine>=factory.weeklyGoal?C.primary:C.outline,fontWeight:600}}>{netMine>=factory.weeklyGoal?"🎉 تحقق!":`متبقي ${(factory.weeklyGoal-netMine).toFixed(0)} د.ج`}</span>
+                </div>
+              </>):<div style={{fontSize:13,color:C.outline}}>حدد هدفاً لتتابع تقدمك.</div>}
+            </div>
+            {factory.weeks.length>1&&(
+              <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+                <div style={{fontWeight:800,fontSize:15,marginBottom:14}}>📊 مقارنة الأسابيع (صافي)</div>
+                {factory.weeks.map((w,wi)=>{
+                  const q=w.days.reduce((s,d)=>s+dayQ(d),0);const mine=(q*pricePerQ)/3;const net=mine-weekAdv(w);
+                  const maxN=Math.max(...factory.weeks.map(ww=>{const qq=(ww.days.reduce((s,d)=>s+dayQ(d),0)*pricePerQ)/3;return qq-weekAdv(ww);}));
+                  const isB=wi===bestWkIdx;
+                  return(<div key={w.id} style={{marginBottom:10}}>
+                    <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:4}}>
+                      <span style={{fontWeight:isB?700:400}}>{isB?"🏆 ":""}{w.label}{weekAdv(w)>0?` (خصم ${weekAdv(w).toFixed(0)})`:""}</span>
+                      <span style={{fontWeight:700,color:isB?"#B8860B":C.primary}}>{net.toFixed(0)} {T.currency}</span>
+                    </div>
+                    <ProgressBar value={net} max={maxN||1} color={isB?"#B8860B":C.primary} C={C}/>
+                  </div>);
+                })}
+              </div>
+            )}
+            {factories.length>1&&(
+              <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+                <div style={{fontWeight:800,fontSize:15,marginBottom:14}}>🏭 مقارنة المصانع</div>
+                {factories.map(f=>{
+                  const fC=getC(f.colorKey,themeMode);
+                  const fNet=f.weeks.reduce((s,w)=>{const mine=(w.days.reduce((ss,d)=>ss+dayQ(d),0)*f.pricePerQ)/3;return s+mine-weekAdv(w);},0);
+                  const maxN=Math.max(...factories.map(ff=>ff.weeks.reduce((s,w)=>{const mine=(w.days.reduce((ss,d)=>ss+dayQ(d),0)*ff.pricePerQ)/3;return s+mine-weekAdv(w);},0)));
+                  const isA=f.id===activeFactoryId;
+                  return(<div key={f.id} style={{marginBottom:10}}>
+                    <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:4}}>
+                      <span style={{fontWeight:isA?700:400}}>{isA?"📍 ":""}{f.name}</span>
+                      <span style={{fontWeight:700,color:fC.primary}}>{fNet.toFixed(0)} {T.currency}</span>
+                    </div>
+                    <ProgressBar value={fNet} max={maxN||1} color={fC.primary} C={C}/>
+                  </div>);
+                })}
+              </div>
+            )}
+            <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+              <div style={{fontWeight:800,fontSize:15,marginBottom:6}}>📤 تصدير التقرير</div>
+              <div style={{background:C.scMed,borderRadius:14,padding:"12px 14px",fontSize:12,color:C.onSurfaceVariant,lineHeight:1.9,marginBottom:14,fontFamily:"monospace",direction:"rtl"}}>
+                {`📋 ${week.label} — ${factory.name}\n👷 ${factory.myName}\n⚖️ ${weekQ.toFixed(1)} قنطار\n💰 ${weekMine.toFixed(2)} د.ج${totalAdv>0?`\n🔻 خصم: ${totalAdv.toFixed(2)} د.ج\n✅ صافي: ${netMine.toFixed(2)} د.ج`:""}`}
+              </div>
+              <Btn filled onClick={copyReport} wide C={C} style={{padding:"12px",fontSize:14,borderRadius:14}}>{copied?"✅ تم النسخ!":"📋 نسخ التقرير كاملاً"}</Btn>
+            </div>
+          </div>
+        )}
+
+        {/* ════ SETTINGS ════ */}
+        {tab==="settings"&&(
+          <div style={{display:"flex",flexDirection:"column",gap:14,animation:"slideUp .2s ease"}}>
+            <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+              <div style={{fontWeight:800,fontSize:15,marginBottom:14}}>{T.theme_mode}</div>
+              <div style={{display:"flex",gap:10}}>
+                {[{k:"light",l:T.light},{k:"dark",l:T.dark}].map(t=>(
+                  <button key={t.k} onClick={()=>setThemeMode(t.k)} style={{flex:1,padding:"12px 8px",background:themeMode===t.k?C.primaryContainer:C.scHighest,color:themeMode===t.k?C.onPrimaryContainer:C.onSurfaceVariant,border:`2px solid ${themeMode===t.k?C.primary:C.outlineVariant}`,borderRadius:16,cursor:"pointer",fontFamily:"inherit",fontSize:14,fontWeight:themeMode===t.k?700:400,transition:"all .15s"}}>{t.l}</button>
+                ))}
+              </div>
+            </div>
+            <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+              <div style={{fontWeight:800,fontSize:15,marginBottom:4}}>{T.factory_color}</div>
+              <div style={{fontSize:12,color:C.outline,marginBottom:14}}>{factory.name}</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+                {Object.entries(PALETTES).map(([key,p])=>{
+                  const pC=p[themeMode]||p.light;const isA=factory.colorKey===key;
+                  return(<button key={key} onClick={()=>setFacField("colorKey",key)} style={{display:"flex",alignItems:"center",gap:8,background:isA?pC.primaryContainer:C.scHighest,border:`2px solid ${isA?pC.primary:C.outlineVariant}`,borderRadius:100,padding:"7px 14px",cursor:"pointer",fontFamily:"inherit",fontSize:13,color:isA?pC.onPrimaryContainer:C.onSurfaceVariant,fontWeight:isA?700:400,transition:"all .15s"}}>
+                    <div style={{width:16,height:16,borderRadius:"50%",background:`linear-gradient(135deg,${pC.primary},${pC.primaryContainer})`}}/>{p.emoji} {p.name}{isA?" ✓":""}
+                  </button>);
+                })}
+              </div>
+            </div>
+            <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+              <div style={{fontWeight:800,fontSize:15,marginBottom:14}}>{T.factory_settings}</div>
+              {[
+                {l:T.factory_name,v:factory.name,a:()=>openModal("facName",factory.name)},
+                {l:T.my_name,v:factory.myName,a:()=>openModal("myName",factory.myName)},
+                {l:T.price_q,v:`${pricePerQ} د.ج`,a:()=>openModal("price",String(pricePerQ))},
+                {l:T.weekly_goal,v:factory.weeklyGoal>0?`${factory.weeklyGoal} ${T.currency}`:T.not_set,a:()=>openModal("goal",String(factory.weeklyGoal))},
+              ].map((row,i,arr)=>(
+                <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:i<arr.length-1?`1px solid ${C.outlineVariant}`:"none"}}>
+                  <span style={{fontSize:14}}>{row.l}</span>
+                  <button onClick={row.a} style={{background:C.secondaryContainer,border:"none",borderRadius:100,padding:"5px 14px",cursor:"pointer",fontFamily:"inherit",fontSize:13,color:C.onSecondaryContainer,fontWeight:600}}>{row.v} ✏️</button>
+                </div>
+              ))}
+            </div>
+            {workers.length>0&&(
+              <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+                <div style={{fontWeight:800,fontSize:15,marginBottom:12}}>{T.workers_registered}</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+                  {workers.map((w,i)=><span key={i} style={{background:C.secondaryContainer,color:C.onSecondaryContainer,borderRadius:100,padding:"5px 14px",fontSize:12,fontWeight:600}}>{w}</span>)}
+                </div>
+              </div>
+            )}
+            {/* Language selector */}
+            <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+              <div style={{fontWeight:800,fontSize:15,marginBottom:14}}>{T.language_setting}</div>
+              <div style={{display:"flex",gap:10}}>
+                {[{k:"ar",l:"🇩🇿 العربية"},{k:"fr",l:"🇫🇷 Français"},{k:"en",l:"🇬🇧 English"}].map(lg=>(
+                  <button key={lg.k} onClick={()=>setLang(lg.k)} style={{flex:1,padding:"12px 8px",
+                    background:lang===lg.k?C.primaryContainer:C.scHighest,
+                    color:lang===lg.k?C.onPrimaryContainer:C.onSurfaceVariant,
+                    border:`2px solid ${lang===lg.k?C.primary:C.outlineVariant}`,
+                    borderRadius:16,cursor:"pointer",fontFamily:"inherit",fontSize:14,
+                    fontWeight:lang===lg.k?700:400,transition:"all .15s"}}>{lg.l}</button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{background:C.scLowest,borderRadius:20,padding:"18px 20px",border:`1px solid ${C.outlineVariant}`,boxShadow:"0 1px 4px rgba(0,0,0,.07)"}}>
+              <div style={{fontWeight:800,fontSize:15,marginBottom:12}}>{T.about}</div>
+              <div style={{fontSize:13,color:C.outline,lineHeight:2}}>
+                {lang==="fr"?"Application de suivi de production":lang==="en"?"Factory production tracker":"تطبيق تتبع إنتاج المصانع"}<br/>{lang==="fr"?"Devise: Dinar Algérien (DA)":lang==="en"?"Currency: Algerian Dinar (DA)":"العملة: الدينار الجزائري (د.ج)"}<br/>{lang==="fr"?"Usines":lang==="en"?"Factories":"المصانع"}: {factories.length} · {lang==="fr"?"Semaines":lang==="en"?"Weeks":"الأسابيع"}: {factory.weeks.length}<br/>{lang==="fr"?"Données sauvegardées localement":lang==="en"?"Data saved locally":"جميع البيانات محفوظة محلياً"}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* BOTTOM BAR */}
+      <div style={{position:"fixed",bottom:0,left:0,right:0,background:`${C.scLowest}F2`,backdropFilter:"blur(16px)",borderTop:`1px solid ${C.outlineVariant}`}}>
+        <div style={{maxWidth:640,margin:"0 auto",padding:"8px 20px 14px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div style={{fontSize:12,color:C.onSurfaceVariant}}>{week.label}{week.settled&&<span style={{marginRight:6,fontSize:10,color:C.primary}}>✅</span>}</div>
+            <div style={{fontSize:10,color:C.outline}}>
+              {weekQ.toFixed(1)} قنطار · {activeDays} يوم
+              {totalAdv>0&&<span style={{color:C.error}}> · خصم {totalAdv.toFixed(0)}</span>}
+            </div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            {totalAdv>0&&(
+              <div style={{textAlign:"center"}}>
+                <div style={{fontSize:9,color:C.outline}}>قبل الخصم</div>
+                <div style={{fontSize:12,fontWeight:700,color:C.outline,textDecoration:"line-through"}}>{weekMine.toFixed(0)}</div>
+              </div>
+            )}
+            <div style={{background:totalAdv>0?`linear-gradient(135deg,${C.error},#c62828)`:`linear-gradient(135deg,${C.primary},${C.secondary||C.primary})`,borderRadius:100,padding:"8px 20px",fontWeight:900,fontSize:17,color:"#FFF",boxShadow:"0 3px 10px rgba(0,0,0,.15)"}}>
+              {netMine.toFixed(2)} <span style={{fontSize:12,fontWeight:600}}>د.ج</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(App));
+  </script>
+</body>
+</html>
